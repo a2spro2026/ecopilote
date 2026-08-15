@@ -8,10 +8,10 @@ use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Student\AuthController as StudentAuthController;
+use App\Http\Controllers\Student\WorkspaceController as StudentWorkspaceController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
 use App\Http\Controllers\Teacher\WorkspaceController;
-use App\Models\StudentApplication;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
@@ -19,7 +19,7 @@ Route::view('/categories', 'pages.categories')->name('categories');
 Route::view('/activites', 'pages.activites')->name('activites');
 
 Route::get('/portail-profs', [TeacherAuthController::class, 'showLogin'])->name('portail.profs');
-Route::view('/portail-etudiant', 'pages.portail-etudiant')->name('portail.etudiant');
+Route::get('/portail-etudiant', [StudentAuthController::class, 'showLogin'])->name('portail.etudiant');
 Route::redirect('/portail-parents', '/portail-etudiant');
 
 Route::post('/portail-profs', [TeacherAuthController::class, 'login'])->name('portail.profs.login');
@@ -43,33 +43,24 @@ Route::middleware('teacher.auth')->prefix('espace-prof')->group(function () {
     Route::get('/seance-terminee', [WorkspaceController::class, 'terminer'])->name('teacher.seance.terminee');
 });
 
-Route::post('/portail-etudiant', function (Request $request) {
-    $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+Route::post('/portail-etudiant', [StudentAuthController::class, 'login'])->name('portail.etudiant.login');
+Route::post('/portail-etudiant/inscription', [StudentAuthController::class, 'register'])->name('portail.etudiant.register');
+Route::post('/espace-eleve/deconnexion', [StudentAuthController::class, 'logout'])->name('student.logout');
 
-    return back()->with('status', 'Identifiants reçus — prêt à être connecté au système ECOPILOTE.');
-})->name('portail.etudiant.login');
-
-Route::post('/portail-etudiant/inscription', function (Request $request) {
-    $data = $request->validate([
-        'nom_complet' => ['required', 'string', 'max:120'],
-        'contact' => ['required', 'string', 'max:120'],
-        'contact_tuteur' => ['required', 'string', 'max:120'],
-        'ville' => ['required', 'string', 'max:120'],
-        'niveau_scolaire' => ['required', 'string', 'max:120'],
-        'matiere' => ['required', 'string', 'max:120'],
-        'type_cours' => ['required', 'in:individuel,en_groupe'],
-    ]);
-
-    StudentApplication::create([
-        ...$data,
-        'etat' => StudentApplication::ETAT_EN_ATTENTE,
-    ]);
-
-    return back()->with('status', 'Inscription envoyée. Notre équipe vous recontactera bientôt.');
-})->name('portail.etudiant.register');
+Route::middleware('student.auth')->prefix('espace-eleve')->group(function () {
+    Route::get('/', [StudentWorkspaceController::class, 'dashboard'])->name('student.dashboard');
+    Route::get('/classes', [StudentWorkspaceController::class, 'classes'])->name('student.classes');
+    Route::get('/seances', [StudentWorkspaceController::class, 'sessions'])->name('student.sessions');
+    Route::get('/devoirs', [StudentWorkspaceController::class, 'assignments'])->name('student.assignments');
+    Route::post('/devoirs/{assignment}/rendre', [StudentWorkspaceController::class, 'submitAssignment'])
+        ->whereNumber('assignment')->name('student.assignments.submit');
+    Route::get('/documents', [StudentWorkspaceController::class, 'documents'])->name('student.documents');
+    Route::get('/suivi', [StudentWorkspaceController::class, 'progress'])->name('student.progress');
+    Route::get('/archives', [StudentWorkspaceController::class, 'archives'])->name('student.archives');
+    Route::get('/notifications', [StudentWorkspaceController::class, 'notifications'])->name('student.notifications');
+    Route::get('/profil', [StudentWorkspaceController::class, 'profile'])->name('student.profile');
+    Route::get('/salle', [StudentWorkspaceController::class, 'room'])->name('student.room');
+});
 
 Route::prefix('administration')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('admin.login');
@@ -86,6 +77,8 @@ Route::prefix('administration')->group(function () {
 
         Route::get('/candidatures-profs', [TeacherController::class, 'applications'])->name('admin.page.candidatures-profs');
         Route::get('/professeurs', [TeacherController::class, 'index'])->name('admin.page.professeurs');
+        Route::get('/professeurs/fiche-technique', [TeacherController::class, 'technical'])->name('admin.teachers.technical');
+        Route::post('/professeurs/fiche-technique', [TeacherController::class, 'storeTechnical'])->name('admin.teachers.technical.store');
         Route::get('/professeurs/{professeur}', [TeacherController::class, 'show'])->name('admin.teachers.show');
         Route::get('/professeurs/{professeur}/modifier', [TeacherController::class, 'edit'])->name('admin.teachers.edit');
         Route::put('/professeurs/{professeur}', [TeacherController::class, 'update'])->name('admin.teachers.update');
@@ -96,6 +89,9 @@ Route::prefix('administration')->group(function () {
 
         Route::get('/demandes-eleves', [StudentController::class, 'applications'])->name('admin.page.demandes-eleves');
         Route::get('/eleves', [StudentController::class, 'index'])->name('admin.page.eleves');
+        Route::get('/eleves/fiche-technique', [StudentController::class, 'technical'])->name('admin.students.technical');
+        Route::post('/eleves/fiche-technique', [StudentController::class, 'storeTechnical'])->name('admin.students.technical.store');
+        Route::get('/eleves/{eleve}/imprimer', [StudentController::class, 'print'])->name('admin.students.print');
         Route::get('/eleves/{eleve}', [StudentController::class, 'show'])->name('admin.students.show');
         Route::get('/eleves/{eleve}/modifier', [StudentController::class, 'edit'])->name('admin.students.edit');
         Route::put('/eleves/{eleve}', [StudentController::class, 'update'])->name('admin.students.update');
@@ -109,7 +105,7 @@ Route::prefix('administration')->group(function () {
         Route::get('/salles-actives', [RoomController::class, 'index'])->name('admin.page.salles-actives');
 
         foreach (AdminController::pageKeys() as $key) {
-            if (in_array($key, ['classes', 'candidatures-profs', 'professeurs', 'demandes-eleves', 'eleves', 'matieres', 'niveaux', 'salles-actives'], true)) {
+            if (in_array($key, ['classes', 'candidatures-profs', 'professeurs', 'fiche-technique-professeur', 'demandes-eleves', 'eleves', 'fiche-technique-eleve', 'matieres', 'niveaux', 'salles-actives'], true)) {
                 continue;
             }
             Route::get("/{$key}", [AdminController::class, 'page'])

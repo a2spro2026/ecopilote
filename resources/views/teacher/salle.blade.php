@@ -79,6 +79,56 @@
             <button type="button" data-tool="line" class="board-tool rounded-lg bg-white/10 px-2 py-1 text-[11px] font-semibold text-white">Ligne</button>
             <button type="button" data-tool="rect" class="board-tool rounded-lg bg-white/10 px-2 py-1 text-[11px] font-semibold text-white">Formes</button>
             <button type="button" id="openShapeLibrary" class="rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white">Bibliothèque de formes</button>
+            <div class="relative">
+                <button type="button" id="boardRulingButton" class="rounded-lg bg-white/10 px-2 py-1 text-[11px] font-semibold text-white">Lignes : aucune</button>
+                <div id="boardRulingMenu" class="absolute left-0 top-full z-40 mt-1 hidden w-56 overflow-hidden rounded-xl border border-white/10 bg-slate-900 shadow-2xl">
+                    @foreach ([
+                        'none' => ['Page blanche', 'Aucun repère'],
+                        'lines' => ['Lignes simples', 'Écriture courante'],
+                        'seyes' => ['Lignes de cahier', 'Apprentissage de l’écriture'],
+                        'grid' => ['Carreaux', 'Maths et géométrie'],
+                    ] as $key => $option)
+                        <button type="button" data-ruling="{{ $key }}" class="ruling-option block w-full px-3 py-2 text-left hover:bg-white/10">
+                            <span class="block text-[12px] font-semibold text-white">{{ $option[0] }}</span>
+                            <span class="block text-[10px] text-slate-400">{{ $option[1] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+            <div class="relative">
+                <button type="button" id="boardSymbolsButton" class="rounded-lg bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white">Signes mathématiques</button>
+                <div id="boardSymbolsMenu" class="absolute left-0 top-full z-40 mt-1 hidden w-72 rounded-xl border border-white/10 bg-slate-900 p-3 shadow-2xl">
+                    <p class="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Opérations et relations</p>
+                    <div class="grid grid-cols-6 gap-1.5">
+                        @foreach ([
+                            '+' => 'Addition',
+                            '−' => 'Soustraction',
+                            '×' => 'Multiplication',
+                            '÷' => 'Division',
+                            '=' => 'Égal',
+                            '≠' => 'Différent',
+                            '<' => 'Inférieur',
+                            '>' => 'Supérieur',
+                            '≤' => 'Inférieur ou égal',
+                            '≥' => 'Supérieur ou égal',
+                            '±' => 'Plus ou moins',
+                            '%' => 'Pourcentage',
+                            '√' => 'Racine carrée',
+                            'π' => 'Pi',
+                            '∞' => 'Infini',
+                            '°' => 'Degré',
+                            '²' => 'Au carré',
+                            '³' => 'Au cube',
+                        ] as $symbol => $label)
+                            <button type="button" data-math-symbol="{{ $symbol }}" title="{{ $label }}" aria-label="{{ $label }}"
+                                    class="math-symbol flex h-9 items-center justify-center rounded-lg bg-white/10 text-lg font-semibold text-white transition hover:bg-violet-500">
+                                {{ $symbol }}
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="mt-2 text-[10px] text-slate-400">Le signe est inséré directement au curseur.</p>
+                </div>
+            </div>
             <button type="button" id="boardShapeAssist" class="rounded-lg bg-emerald-500 px-2 py-1 text-[11px] font-semibold text-white">Formes auto : activé</button>
             <div id="boardPalette" class="flex items-center gap-1 rounded-lg bg-white/10 p-1" aria-label="Couleurs du tableau">
                 @foreach ([
@@ -118,8 +168,16 @@
         </div>
 
         <div class="teacher-board min-h-0 flex-1">
+            <canvas id="boardBackground" class="teacher-board-layer" aria-hidden="true"></canvas>
             <canvas id="boardCanvas" tabindex="0" aria-label="Tableau blanc interactif"></canvas>
             <p id="keyboardHint" class="teacher-board-hint">Tapez au clavier pour écrire · dessinez une forme, elle est corrigée automatiquement.</p>
+            <div id="mediaPreviewWrap" class="absolute right-3 top-3 z-20 hidden w-48 overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-white/10 px-2 py-1">
+                    <span id="mediaPreviewLabel" class="text-[10px] font-semibold text-slate-300">Caméra</span>
+                    <button type="button" id="closeMediaPreview" class="text-xs text-slate-400 hover:text-white" aria-label="Masquer l’aperçu">×</button>
+                </div>
+                <video id="mediaPreview" class="aspect-video w-full bg-black object-cover" autoplay muted playsinline></video>
+            </div>
         </div>
 
         <div class="mt-2 flex items-center gap-2">
@@ -158,15 +216,42 @@
 </div>
 
 <footer class="flex h-16 shrink-0 items-center justify-center gap-2 overflow-x-auto border-t border-white/10 px-3">
-    <button type="button" class="salle-act rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Micro</button>
-    <button type="button" class="salle-act rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Caméra</button>
-    <button type="button" class="salle-act rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Partager l’écran</button>
-    <button type="button" class="salle-act rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Documents</button>
+    <button type="button" id="microphoneButton" aria-pressed="false" class="media-control inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">
+        <span class="media-dot h-2 w-2 rounded-full bg-slate-500"></span>
+        <span class="media-label">Activer le micro</span>
+        <span id="micEqualizer" class="mic-equalizer hidden" aria-hidden="true">
+            <span class="mic-eq-bar" style="--eq-h: 20%"></span>
+            <span class="mic-eq-bar" style="--eq-h: 45%"></span>
+            <span class="mic-eq-bar" style="--eq-h: 70%"></span>
+            <span class="mic-eq-bar" style="--eq-h: 35%"></span>
+            <span class="mic-eq-bar" style="--eq-h: 55%"></span>
+        </span>
+    </button>
+    <button type="button" id="cameraButton" aria-pressed="false" class="media-control inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">
+        <span class="media-dot h-2 w-2 rounded-full bg-slate-500"></span>
+        <span class="media-label">Activer la caméra</span>
+    </button>
+    <button type="button" id="screenShareButton" aria-pressed="false" class="media-control inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">
+        <span class="media-dot h-2 w-2 rounded-full bg-slate-500"></span>
+        <span class="media-label">Partager l’écran</span>
+    </button>
+    <button type="button" id="documentsButton" class="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Documents</button>
     <button type="button" id="openStudentPanel" class="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white">Vue élève</button>
     <a href="{{ route('teacher.exercices') }}" class="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Exercices</a>
-    <button type="button" class="salle-act rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Enregistrer</button>
-    <button type="button" id="chronoBtn" class="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white">Chronomètre</button>
-    <a href="{{ route('teacher.seance.terminee') }}" class="rounded-xl bg-rose-600 px-3 py-2 text-xs font-bold text-white">Terminer le cours</a>
+    <button type="button" id="automaticRecordingButton" disabled aria-disabled="true"
+            title="L’enregistrement est automatique et ne peut pas être interrompu par le professeur."
+            class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-300">
+        <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
+        <span>Enregistrement automatique</span>
+    </button>
+    <button type="button" id="chronoBtn" disabled aria-disabled="true"
+            title="Le chronomètre démarre automatiquement avec la séance."
+            class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-emerald-600/80 px-3 py-2 text-xs font-semibold text-white">
+        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-200"></span>
+        <span>Chronomètre</span>
+        <span id="chronoDisplay" class="font-mono tabular-nums">00:00</span>
+    </button>
+    <a href="{{ route('teacher.seance.terminee') }}" id="endSessionLink" class="rounded-xl bg-rose-600 px-3 py-2 text-xs font-bold text-white">Terminer le cours</a>
 </footer>
 
 <div id="shapeLibraryModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-950/70 p-4">
@@ -255,11 +340,16 @@
     const canvas = document.getElementById('boardCanvas');
     const ctx = canvas.getContext('2d');
     const wrap = canvas.parentElement;
+    const background = document.getElementById('boardBackground');
+    const bg = background.getContext('2d');
+    let ruling = 'none';
     let tool = 'pen';
     let drawing = false;
     let last = null;
     let zoom = 1;
-    let locked = true; // visuel uniquement : le professeur peut toujours écrire
+    const studentWritingPermissionKey = 'ecopilote.student.writing.allowed';
+    const studentWritingRequestKey = 'ecopilote.student.writing.request';
+    let locked = localStorage.getItem(studentWritingPermissionKey) !== '1'; // Le professeur peut toujours écrire.
     let pages = [null];
     let page = 0;
     const undo = [];
@@ -277,15 +367,66 @@
     const requests = [];
     const contributions = [];
 
+    // Le réglage vit sur un calque distinct : écrire, gommer ou effacer le tableau
+    // ne touche jamais aux lignes.
+    function drawRuling() {
+        const width = background.width;
+        const height = background.height;
+        bg.clearRect(0, 0, width, height);
+        if (ruling === 'none') return;
+
+        const horizontal = (y, color, lineWidth = 1) => {
+            bg.strokeStyle = color;
+            bg.lineWidth = lineWidth;
+            bg.beginPath();
+            bg.moveTo(0, Math.round(y) + 0.5);
+            bg.lineTo(width, Math.round(y) + 0.5);
+            bg.stroke();
+        };
+        const vertical = (x, color, lineWidth = 1) => {
+            bg.strokeStyle = color;
+            bg.lineWidth = lineWidth;
+            bg.beginPath();
+            bg.moveTo(Math.round(x) + 0.5, 0);
+            bg.lineTo(Math.round(x) + 0.5, height);
+            bg.stroke();
+        };
+
+        if (ruling === 'lines') {
+            for (let y = 48; y < height; y += 48) horizontal(y, '#cbd5e1');
+            return;
+        }
+
+        if (ruling === 'seyes') {
+            const block = 56;
+            const interline = block / 4;
+            for (let y = block; y < height; y += block) {
+                for (let step = 1; step <= 3; step += 1) horizontal(y - (step * interline), '#dbeafe');
+                horizontal(y, '#93c5fd', 1.4);
+            }
+            vertical(96, '#fca5a5', 1.4);
+            return;
+        }
+
+        const step = 40;
+        for (let x = step; x < width; x += step) {
+            vertical(x, (x / step) % 5 === 0 ? '#cbd5e1' : '#e8eef6');
+        }
+        for (let y = step; y < height; y += step) {
+            horizontal(y, (y / step) % 5 === 0 ? '#cbd5e1' : '#e8eef6');
+        }
+    }
+
     function resize() {
         const snap = canvas.toDataURL();
         canvas.width = wrap.clientWidth;
         canvas.height = wrap.clientHeight;
+        background.width = wrap.clientWidth;
+        background.height = wrap.clientHeight;
+        drawRuling();
         const img = new Image();
         img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         img.src = snap;
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         if (typing) {
             typing.base = snap;
             renderTyping(true);
@@ -346,6 +487,26 @@
         return ctx.measureText(line).width;
     }
 
+    // Écart entre deux lignes du réglage actif, pour que la frappe suive le cahier.
+    function rulingSpacing() {
+        if (ruling === 'lines') return 48;
+        if (ruling === 'seyes') return 56;
+        if (ruling === 'grid') return 40;
+        return null;
+    }
+
+    function lineStep() {
+        return rulingSpacing() ?? (fontSize() + 5);
+    }
+
+    // Le texte doit reposer sur la ligne, pas flotter entre deux.
+    function snapBaseline(y) {
+        const spacing = rulingSpacing();
+        if (!spacing) return y;
+        const snapped = Math.round(y / spacing) * spacing;
+        return Math.min(Math.max(snapped, spacing), Math.max(spacing, canvas.height - 6)) - 2;
+    }
+
     function drawText(text, x, y, color = document.getElementById('boardColor').value) {
         const lines = String(text).split(/\r?\n/);
         if (!lines.length || (lines.length === 1 && !lines[0])) return;
@@ -354,7 +515,8 @@
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillStyle = color;
         ctx.font = `${size}px Poppins, sans-serif`;
-        lines.forEach((line, index) => ctx.fillText(line, x, y + (index * (size + 5))));
+        const step = lineStep();
+        lines.forEach((line, index) => ctx.fillText(line, x, y + (index * step)));
     }
 
     function paintTypingOverlay(showCaret = caretVisible) {
@@ -365,13 +527,14 @@
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillStyle = color;
         ctx.font = `${size}px Poppins, sans-serif`;
+        const step = lineStep();
         lines.forEach((line, index) => {
-            ctx.fillText(line, typing.x, typing.y + (index * (size + 5)));
+            ctx.fillText(line, typing.x, typing.y + (index * step));
         });
         if (showCaret) {
             const lastLine = lines[lines.length - 1] || '';
             const caretX = typing.x + measureLine(lastLine);
-            const caretY = typing.y + ((lines.length - 1) * (size + 5));
+            const caretY = typing.y + ((lines.length - 1) * step);
             ctx.strokeStyle = color;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
@@ -390,7 +553,7 @@
         restore(typing.base, () => paintTypingOverlay(showCaret));
     }
 
-    function startTyping(x, y, initial = '') {
+    function startTyping(x, y, initial = '', snap = true) {
         endTyping();
         setTool('text');
         const base = canvas.toDataURL();
@@ -398,7 +561,7 @@
         baseImage.src = base;
         typing = {
             x,
-            y,
+            y: snap ? snapBaseline(y) : y,
             text: initial,
             base,
             baseImage,
@@ -878,6 +1041,65 @@
         toast(shapeAssist ? 'Les formes tracées seront corrigées.' : 'Tracé libre sans correction.');
     };
 
+    const rulingButton = document.getElementById('boardRulingButton');
+    const rulingMenu = document.getElementById('boardRulingMenu');
+    const symbolsButton = document.getElementById('boardSymbolsButton');
+    const symbolsMenu = document.getElementById('boardSymbolsMenu');
+    const rulingLabels = {
+        none: 'aucune',
+        lines: 'simples',
+        seyes: 'cahier',
+        grid: 'carreaux',
+    };
+
+    rulingButton.onclick = event => {
+        event.stopPropagation();
+        symbolsMenu.classList.add('hidden');
+        rulingMenu.classList.toggle('hidden');
+    };
+    symbolsButton.onclick = event => {
+        event.stopPropagation();
+        rulingMenu.classList.add('hidden');
+        symbolsMenu.classList.toggle('hidden');
+    };
+    document.addEventListener('click', event => {
+        if (!rulingMenu.contains(event.target) && event.target !== rulingButton) {
+            rulingMenu.classList.add('hidden');
+        }
+        if (!symbolsMenu.contains(event.target) && event.target !== symbolsButton) {
+            symbolsMenu.classList.add('hidden');
+        }
+    });
+    document.querySelectorAll('.ruling-option').forEach(option => {
+        option.addEventListener('click', () => {
+            ruling = option.dataset.ruling;
+            drawRuling();
+            rulingMenu.classList.add('hidden');
+            rulingButton.textContent = `Lignes : ${rulingLabels[ruling]}`;
+            rulingButton.className = ruling === 'none'
+                ? 'rounded-lg bg-white/10 px-2 py-1 text-[11px] font-semibold text-white'
+                : 'rounded-lg bg-emerald-500 px-2 py-1 text-[11px] font-semibold text-white';
+            toast(ruling === 'none' ? 'Réglage retiré.' : 'Réglage appliqué au fond du tableau.');
+            canvas.focus();
+        });
+    });
+
+    document.querySelectorAll('.math-symbol').forEach(button => {
+        button.addEventListener('click', () => {
+            const symbol = button.dataset.mathSymbol;
+            if (typing) {
+                typing.text += symbol;
+                caretVisible = true;
+                renderTyping(true);
+            } else {
+                startTyping(canvas.width / (2 * zoom), canvas.height / (2 * zoom), symbol);
+            }
+            symbolsMenu.classList.add('hidden');
+            canvas.focus();
+            toast(`${button.getAttribute('aria-label')} inséré.`);
+        });
+    });
+
     document.getElementById('openShapeLibrary').onclick = openShapeLibrary;
     document.getElementById('closeShapeLibrary').onclick = closeShapeLibrary;
     document.getElementById('shapeLibraryModal').addEventListener('click', event => {
@@ -909,11 +1131,10 @@
         if (typing) {
             // Le texte déjà tapé est validé dans sa couleur, la suite repart du
             // curseur avec la nouvelle couleur.
-            const size = fontSize();
             const lines = typing.text.split(/\r?\n/);
             const caretX = typing.text ? typing.x + measureLine(lines[lines.length - 1] || '') : typing.x;
-            const caretY = typing.y + ((lines.length - 1) * (size + 5));
-            endTyping(() => startTyping(caretX, caretY));
+            const caretY = typing.y + ((lines.length - 1) * lineStep());
+            endTyping(() => startTyping(caretX, caretY, '', false));
         }
 
         canvas.focus();
@@ -1052,8 +1273,7 @@
 
     function clearBoard() {
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     document.getElementById('boardUndo').onclick = () => { cancelTyping(); if (!undo.length) return; redo.push(canvas.toDataURL()); restore(undo.pop()); };
@@ -1068,11 +1288,26 @@
     document.getElementById('boardZoomOut').onclick = () => { zoom = Math.max(0.6, zoom - 0.1); canvas.style.transform = `scale(${zoom})`; canvas.style.transformOrigin = '0 0'; };
     document.getElementById('boardLock').onclick = function () {
         locked = !locked;
+        localStorage.setItem(studentWritingPermissionKey, locked ? '0' : '1');
+        this.classList.remove('animate-pulse', 'ring-2', 'ring-amber-300');
         this.textContent = locked ? 'Tableau verrouillé' : 'Écriture élève autorisée';
         this.className = locked
             ? 'ml-auto rounded-lg bg-amber-500/20 px-2 py-1 text-[11px] font-semibold text-amber-200'
             : 'ml-auto rounded-lg bg-emerald-500/20 px-2 py-1 text-[11px] font-semibold text-emerald-200';
+        toast(locked ? 'Écriture élève désactivée.' : 'L’élève peut maintenant écrire sur le tableau.');
     };
+    const studentWritingButton = document.getElementById('boardLock');
+    studentWritingButton.textContent = locked ? 'Tableau verrouillé' : 'Écriture élève autorisée';
+    studentWritingButton.className = locked
+        ? 'ml-auto rounded-lg bg-amber-500/20 px-2 py-1 text-[11px] font-semibold text-amber-200'
+        : 'ml-auto rounded-lg bg-emerald-500/20 px-2 py-1 text-[11px] font-semibold text-emerald-200';
+    window.addEventListener('storage', event => {
+        if (event.key !== studentWritingRequestKey || !event.newValue) return;
+        let student = 'Un élève';
+        try { student = JSON.parse(event.newValue).student || student; } catch (_) {}
+        toast(`${student} demande l’autorisation d’écrire. Cliquez sur « Tableau verrouillé » pour accepter.`);
+        studentWritingButton.classList.add('animate-pulse', 'ring-2', 'ring-amber-300');
+    });
     document.getElementById('boardImport').onchange = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -1259,16 +1494,258 @@
         clearBoard();
         renderPages();
     };
+
+    const roomStorageKey = 'ecopilote:teacher-room:{{ $currentTeacher->id }}';
+    let roomEnded = false;
+
+    function saveRoomState() {
+        if (roomEnded) return;
+        try {
+            const current = canvas.toDataURL();
+            pages[page] = current;
+            sessionStorage.setItem(roomStorageKey, JSON.stringify({
+                pages,
+                page,
+                current,
+                ruling,
+            }));
+        } catch (error) {
+            // Le tableau continue de fonctionner si le stockage du navigateur est plein.
+        }
+    }
+
+    function restoreRoomState() {
+        try {
+            const saved = JSON.parse(sessionStorage.getItem(roomStorageKey) || 'null');
+            if (!saved) return;
+            pages = Array.isArray(saved.pages) && saved.pages.length ? saved.pages : [null];
+            page = Math.min(Math.max(Number(saved.page) || 0, 0), pages.length - 1);
+            ruling = ['none', 'lines', 'seyes', 'grid'].includes(saved.ruling) ? saved.ruling : 'none';
+            drawRuling();
+            rulingButton.textContent = `Lignes : ${rulingLabels[ruling]}`;
+            rulingButton.className = ruling === 'none'
+                ? 'rounded-lg bg-white/10 px-2 py-1 text-[11px] font-semibold text-white'
+                : 'rounded-lg bg-emerald-500 px-2 py-1 text-[11px] font-semibold text-white';
+            const image = saved.current || pages[page];
+            if (image) restore(image);
+        } catch (error) {
+            sessionStorage.removeItem(roomStorageKey);
+        }
+    }
+
+    window.addEventListener('beforeunload', saveRoomState);
+    document.getElementById('endSessionLink').addEventListener('click', () => {
+        roomEnded = true;
+        sessionStorage.removeItem(roomStorageKey);
+    });
+
+    restoreRoomState();
     renderPages();
 
     let t0 = Date.now();
-    setInterval(() => {
-        const s = Math.floor((Date.now()-t0)/1000);
-        document.getElementById('sessionTimer').textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-    }, 1000);
+    const chronoDisplay = document.getElementById('chronoDisplay');
+    const sessionTimer = document.getElementById('sessionTimer');
 
-    document.querySelectorAll('.salle-act').forEach(btn => {
-        btn.addEventListener('click', () => btn.classList.toggle('bg-emerald-600'));
+    function formatElapsed(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Le chronomètre démarre dès l’entrée en salle : aucun contrôle manuel.
+    setInterval(() => {
+        const elapsed = Math.floor((Date.now() - t0) / 1000);
+        const label = formatElapsed(elapsed);
+        sessionTimer.textContent = label;
+        if (chronoDisplay) chronoDisplay.textContent = label;
+    }, 250);
+
+    const mediaPreview = document.getElementById('mediaPreview');
+    const mediaPreviewWrap = document.getElementById('mediaPreviewWrap');
+    const mediaPreviewLabel = document.getElementById('mediaPreviewLabel');
+    let microphoneStream = null;
+    let cameraStream = null;
+    let screenStream = null;
+    let micAudioContext = null;
+    let micAnalyser = null;
+    let micEqFrame = null;
+    const micEqualizer = document.getElementById('micEqualizer');
+    const micEqBars = micEqualizer ? [...micEqualizer.querySelectorAll('.mic-eq-bar')] : [];
+
+    function stopMicEqualizer() {
+        if (micEqFrame) {
+            cancelAnimationFrame(micEqFrame);
+            micEqFrame = null;
+        }
+        if (micAudioContext) {
+            micAudioContext.close().catch(() => {});
+            micAudioContext = null;
+        }
+        micAnalyser = null;
+        micEqualizer?.classList.add('hidden');
+        micEqBars.forEach((bar, index) => {
+            bar.style.setProperty('--eq-h', `${12 + (index * 8)}%`);
+        });
+    }
+
+    function startMicEqualizer(stream) {
+        stopMicEqualizer();
+        if (!micEqualizer || (!window.AudioContext && !window.webkitAudioContext)) return;
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        micAudioContext = new AudioCtx();
+        const source = micAudioContext.createMediaStreamSource(stream);
+        micAnalyser = micAudioContext.createAnalyser();
+        micAnalyser.fftSize = 64;
+        micAnalyser.smoothingTimeConstant = 0.72;
+        source.connect(micAnalyser);
+        micEqualizer.classList.remove('hidden');
+
+        const data = new Uint8Array(micAnalyser.frequencyBinCount);
+        const paint = () => {
+            if (!micAnalyser) return;
+            micAnalyser.getByteFrequencyData(data);
+            const step = Math.max(1, Math.floor(data.length / micEqBars.length));
+            micEqBars.forEach((bar, index) => {
+                const sample = data[Math.min(data.length - 1, index * step)] || 0;
+                // Accentue légèrement les médiums pour un rendu plus lisible.
+                const boost = index === 2 || index === 3 ? 1.15 : 1;
+                const height = Math.max(12, Math.min(100, (sample / 255) * 100 * boost));
+                bar.style.setProperty('--eq-h', `${height}%`);
+            });
+            micEqFrame = requestAnimationFrame(paint);
+        };
+        paint();
+    }
+
+    function updateMediaButton(button, active, activeLabel, inactiveLabel) {
+        button.setAttribute('aria-pressed', String(active));
+        button.classList.toggle('bg-emerald-600', active);
+        button.classList.toggle('bg-white/10', !active);
+        button.querySelector('.media-dot').className =
+            `media-dot h-2 w-2 rounded-full ${active ? 'bg-emerald-300 animate-pulse' : 'bg-slate-500'}`;
+        button.querySelector('.media-label').textContent = active ? activeLabel : inactiveLabel;
+    }
+
+    function stopStream(stream) {
+        stream?.getTracks().forEach(track => track.stop());
+    }
+
+    function refreshMediaPreview() {
+        const stream = screenStream || cameraStream;
+        if (!stream) {
+            mediaPreview.srcObject = null;
+            mediaPreviewWrap.classList.add('hidden');
+            return;
+        }
+        mediaPreview.srcObject = stream;
+        mediaPreviewLabel.textContent = screenStream ? 'Écran partagé' : 'Caméra du professeur';
+        mediaPreviewWrap.classList.remove('hidden');
+        mediaPreview.play().catch(() => {});
+    }
+
+    document.getElementById('microphoneButton').onclick = async function () {
+        if (microphoneStream) {
+            stopMicEqualizer();
+            stopStream(microphoneStream);
+            microphoneStream = null;
+            updateMediaButton(this, false, '', 'Activer le micro');
+            toast('Micro désactivé.');
+            return;
+        }
+        try {
+            microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            updateMediaButton(this, true, 'Micro activé', 'Activer le micro');
+            startMicEqualizer(microphoneStream);
+            toast('Micro activé.');
+        } catch (error) {
+            toast('Autorisation du microphone refusée ou indisponible.');
+        }
+    };
+
+    document.getElementById('cameraButton').onclick = async function () {
+        if (cameraStream) {
+            stopStream(cameraStream);
+            cameraStream = null;
+            updateMediaButton(this, false, '', 'Activer la caméra');
+            refreshMediaPreview();
+            toast('Caméra désactivée.');
+            return;
+        }
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+            });
+            updateMediaButton(this, true, 'Caméra activée', 'Activer la caméra');
+            refreshMediaPreview();
+            toast('Caméra activée.');
+        } catch (error) {
+            toast('Autorisation de la caméra refusée ou indisponible.');
+        }
+    };
+
+    document.getElementById('screenShareButton').onclick = async function () {
+        if (screenStream) {
+            stopStream(screenStream);
+            screenStream = null;
+            updateMediaButton(this, false, '', 'Partager l’écran');
+            refreshMediaPreview();
+            toast('Partage d’écran arrêté.');
+            return;
+        }
+        if (!navigator.mediaDevices?.getDisplayMedia) {
+            toast('Le partage d’écran n’est pas pris en charge par ce navigateur.');
+            return;
+        }
+        try {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true,
+            });
+            const button = this;
+            updateMediaButton(button, true, 'Écran partagé', 'Partager l’écran');
+            screenStream.getVideoTracks()[0]?.addEventListener('ended', () => {
+                screenStream = null;
+                updateMediaButton(button, false, '', 'Partager l’écran');
+                refreshMediaPreview();
+                toast('Partage d’écran arrêté.');
+            });
+            refreshMediaPreview();
+            toast('Partage d’écran démarré.');
+        } catch (error) {
+            toast('Partage d’écran annulé.');
+        }
+    };
+
+    document.getElementById('closeMediaPreview').onclick = () => {
+        mediaPreviewWrap.classList.add('hidden');
+    };
+
+    document.getElementById('documentsButton').onclick = () => {
+        const panel = document.getElementById('docsPanel');
+        const currentlyHidden = window.getComputedStyle(panel).display === 'none';
+        if (currentlyHidden) {
+            panel.classList.remove('hidden', '!hidden');
+            panel.classList.add('flex');
+        } else {
+            panel.classList.add('!hidden');
+            panel.classList.remove('flex');
+        }
+    };
+
+    const automaticRecordingButton = document.getElementById('automaticRecordingButton');
+    automaticRecordingButton.dataset.startedAt = new Date().toISOString();
+    automaticRecordingButton.dataset.state = 'recording';
+
+    window.addEventListener('beforeunload', () => {
+        stopMicEqualizer();
+        stopStream(microphoneStream);
+        stopStream(cameraStream);
+        stopStream(screenStream);
     });
 })();
 </script>

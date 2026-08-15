@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
 {
@@ -16,7 +17,10 @@ class Student extends Model
     protected $fillable = [
         'code',
         'nom_complet',
+        'login',
+        'access_password',
         'contact',
+        'tuteur_nom',
         'contact_tuteur',
         'ville',
         'niveau_scolaire',
@@ -24,6 +28,9 @@ class Student extends Model
         'type_cours',
         'etat',
         'paiement',
+        'mode_paiement',
+        'periode_paiement',
+        'photo_path',
         'echeance',
     ];
 
@@ -32,6 +39,7 @@ class Student extends Model
         return [
             'echeance' => 'date',
             'paiement' => 'decimal:2',
+            'access_password' => 'encrypted',
         ];
     }
 
@@ -87,5 +95,15 @@ class Student extends Model
     public function echeanceDisplay(): string
     {
         return $this->echeance ? $this->echeance->format('d/m/Y') : '—';
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {
+            return null;
+        }
+
+        // asset() suit l'hôte de la requête courante, contrairement à Storage::url() qui fige APP_URL.
+        return asset('storage/'.ltrim(str_replace('\\', '/', $this->photo_path), '/'));
     }
 }

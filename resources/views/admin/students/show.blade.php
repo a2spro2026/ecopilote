@@ -44,6 +44,8 @@
     </div>
 
     <dl class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Identifiant</dt><dd class="break-all text-sm font-medium text-blue-700 dark:text-blue-300">{{ $eleve->login }}</dd></div>
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Mot de passe d’accès</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->access_password }}</dd></div>
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Contact</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->contact }}</dd></div>
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Contact Tuteur</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->contact_tuteur }}</dd></div>
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Ville</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->ville }}</dd></div>

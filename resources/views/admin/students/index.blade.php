@@ -39,45 +39,45 @@
         </div>
     @else
         <div class="w-full overflow-x-auto">
-            <table class="ep-table w-full table-fixed text-sm sm:text-[15px]">
+            <table class="ep-table min-w-[1180px] w-full table-fixed text-sm">
+                <colgroup>
+                    <col class="w-[7%]">
+                    <col class="w-[17%]">
+                    <col class="w-[12%]">
+                    <col class="w-[14%]">
+                    <col class="w-[12%]">
+                    <col class="w-[17%]">
+                    <col class="w-[11%]">
+                    <col class="w-[10%]">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nom Complet</th>
+                        <th class="!px-2">ID</th>
+                        <th>Nom complet</th>
                         <th>Contact</th>
-                        <th>Contact Tuteur</th>
-                        <th>Ville</th>
-                        <th>Niveau</th>
-                        <th>Matière</th>
-                        <th>Type Cours</th>
-                        <th>État</th>
-                        <th>Paiement</th>
-                        <th>Échéance</th>
-                        <th>Action</th>
+                        <th>Nom tuteur</th>
+                        <th>Contact</th>
+                        <th>Login</th>
+                        <th>Mot de passe</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach ($eleves as $e)
-                        @php $em = $etatMeta[$e->etat] ?? $etatMeta['en_attente']; @endphp
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                            <td class="font-semibold text-slate-900 dark:text-white">{{ $e->displayId() }}</td>
-                            <td class="font-medium text-slate-800 dark:text-slate-100">{{ $e->nom_complet }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->contact }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->contact_tuteur }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->ville }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->niveau_scolaire }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->matiere }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->typeCoursLabel() }}</td>
-                            <td>
-                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset {{ $em['chip'] }}">
-                                    <span class="h-1.5 w-1.5 rounded-full {{ $em['dot'] }}"></span>
-                                    {{ $e->etatLabel() }}
-                                </span>
+                            <td class="!px-2 font-semibold text-slate-900 dark:text-white">{{ $e->displayId() }}</td>
+                            <td class="truncate font-medium text-slate-800 dark:text-slate-100" title="{{ $e->nom_complet }}">{{ $e->nom_complet }}</td>
+                            <td class="truncate text-slate-600 dark:text-slate-300" title="{{ $e->contact }}">{{ $e->contact }}</td>
+                            <td class="truncate text-slate-600 dark:text-slate-300" title="{{ $e->tuteur_nom ?: 'Non renseigné' }}">{{ $e->tuteur_nom ?: '—' }}</td>
+                            <td class="truncate text-slate-600 dark:text-slate-300" title="{{ $e->contact_tuteur }}">{{ $e->contact_tuteur }}</td>
+                            <td class="truncate font-semibold text-blue-700 dark:text-blue-300" title="{{ $e->login ?: \App\Support\EcopiloteIdentity::loginFromName($e->nom_complet) }}">
+                                {{ $e->login ?: \App\Support\EcopiloteIdentity::loginFromName($e->nom_complet) }}
                             </td>
-                            <td class="font-medium text-slate-800 dark:text-slate-100">{{ $e->paiementDisplay() }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $e->echeanceDisplay() }}</td>
                             <td>
-                                <div class="flex flex-wrap items-center justify-center gap-1.5">
+                                <code class="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs font-bold text-slate-800 dark:bg-slate-800 dark:text-slate-100">{{ $e->access_password ?: '—' }}</code>
+                            </td>
+                            <td>
+                                <div class="flex flex-nowrap items-center justify-center gap-1.5">
                                     <a href="{{ route('admin.students.show', $e) }}" title="Voir" aria-label="Voir"
                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -89,6 +89,12 @@
                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition hover:bg-blue-700">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{{ route('admin.students.print', $e) }}" target="_blank" title="Imprimer" aria-label="Imprimer"
+                                       class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white transition hover:bg-emerald-700">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829h10.56M6.72 17.443h10.56M6.72 21h10.56A1.72 1.72 0 0 0 19 19.28V9.5H5v9.78A1.72 1.72 0 0 0 6.72 21ZM7 5V3h10v2m2 0H5a3 3 0 0 0-3 3v5h3V9.5h14V13h3V8a3 3 0 0 0-3-3Z"/>
                                         </svg>
                                     </a>
                                     <form method="POST" action="{{ route('admin.students.suspend', $e) }}">

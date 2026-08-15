@@ -234,6 +234,21 @@ main table tbody td > div.flex {
     outline: none;
 }
 
+/* Calque de fond : réglage (lignes, séyès, carreaux) sous la surface d'écriture. */
+.teacher-board-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    cursor: default;
+    pointer-events: none;
+}
+
+.teacher-board #boardCanvas {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
 .teacher-board-hint {
     position: absolute;
     left: 50%;
@@ -255,5 +270,38 @@ main table tbody td > div.flex {
         white-space: normal;
         text-align: center;
     }
+}
+
+/* Égaliseur micro — réagit au niveau sonore réel */
+.mic-equalizer {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+    margin-left: 2px;
+}
+
+.mic-eq-bar {
+    display: block;
+    width: 2.5px;
+    height: var(--eq-h, 20%);
+    min-height: 2px;
+    border-radius: 9999px;
+    background: #a7f3d0;
+    box-shadow: 0 0 6px rgb(52 211 153 / 0.55);
+    transition: height 60ms linear;
+}
+
+.admin-tabs-bar {
+    scrollbar-width: thin;
+}
+
+.admin-tabs-bar::-webkit-scrollbar {
+    height: 6px;
+}
+
+.admin-tabs-bar::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 0.7);
+    border-radius: 9999px;
 }
 

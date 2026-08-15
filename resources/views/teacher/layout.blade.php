@@ -1,14 +1,38 @@
+@php
+    $isEmbed = request()->boolean('embed');
+    $pageTitle = trim($__env->yieldContent('title')) ?: 'Mon Bureau';
+    $pageHeading = trim($__env->yieldContent('heading')) ?: 'Mon Bureau';
+    $currentUrl = request()->fullUrlWithoutQuery(['embed']);
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Mon Bureau') · ECOPILOTE</title>
+    <title>{{ $pageTitle }} · ECOPILOTE</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
+    <script>
+        if (window.self !== window.top) {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('embed') !== '1') {
+                url.searchParams.set('embed', '1');
+                window.location.replace(url.toString());
+            }
+        }
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+@if ($isEmbed)
+    <main class="px-4 py-5 sm:px-5">
+        @yield('content')
+    </main>
+    @include('partials.workspace-embed')
+    @stack('scripts')
+</body>
+</html>
+@else
 @php
     $teacher = $currentTeacher ?? null;
     $nav = [
@@ -60,7 +84,7 @@
                     <div class="space-y-0.5">
                         @foreach ($section['items'] as $item)
                             @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'].'.*'); @endphp
-                            <a href="{{ route($item['route']) }}"
+                            <a href="{{ route($item['route']) }}" data-workspace-link data-window-title="{{ $item['label'] }}"
                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition {{ $active ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <svg class="h-[18px] w-[18px] shrink-0 {{ $active ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
@@ -76,15 +100,23 @@
 
     <div id="teacherOverlay" onclick="toggleTeacherSidebar()" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden"></div>
 
-    <div class="flex min-h-screen flex-1 flex-col lg:pl-[272px]">
+    <div class="flex h-screen flex-1 flex-col overflow-hidden lg:pl-[272px]">
         <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
             <button type="button" onclick="toggleTeacherSidebar()" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 lg:hidden" aria-label="Menu">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div class="min-w-0 flex-1">
-                <h1 class="truncate text-base font-bold text-slate-900 sm:text-lg" style="font-family:'Poppins',sans-serif;">@yield('heading', 'Mon Bureau')</h1>
-                <p class="hidden text-xs text-slate-500 sm:block">@yield('subtitle', 'Bureau pédagogique')</p>
+                <h1 class="truncate text-base font-bold text-slate-900 sm:text-lg" style="font-family:'Poppins',sans-serif;">Bureau pédagogique</h1>
+                <p class="hidden text-xs text-slate-500 sm:block">Ouvrez plusieurs pages et réduisez-les pour les voir ensemble</p>
             </div>
+            <a href="{{ route('teacher.salle') }}"
+               class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90"
+               aria-label="Retour à la salle">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h-3A4.5 4.5 0 0 0 3 10.5v3A4.5 4.5 0 0 0 7.5 18h3m3-12h3a4.5 4.5 0 0 1 4.5 4.5v3a4.5 4.5 0 0 1-4.5 4.5h-3M8 12h8"/>
+                </svg>
+                <span class="hidden sm:inline">Retour à la salle</span>
+            </a>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                 Professeur validé
@@ -112,9 +144,16 @@
             </div>
         </header>
 
-        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            @yield('content')
-        </main>
+        <div class="min-h-0 flex-1 bg-slate-100">
+            @include('partials.workspace-windows', [
+                'storageKey' => 'ecopilote.teacher.windows',
+                'initialTitle' => $pageHeading,
+                'initialUrl' => $currentUrl,
+                'accent' => 'emerald',
+            ])
+        </div>
+        {{-- Repli sans JavaScript : les fenêtres nécessitent JS, la page reste lisible sans lui. --}}
+        <noscript><main class="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">@yield('content')</main></noscript>
     </div>
 </div>
 
@@ -123,6 +162,10 @@
         document.getElementById('teacherSidebar').classList.toggle('-translate-x-full');
         document.getElementById('teacherOverlay').classList.toggle('hidden');
     }
+    document.addEventListener('ecopilote:close-sidebar', () => {
+        document.getElementById('teacherSidebar')?.classList.add('-translate-x-full');
+        document.getElementById('teacherOverlay')?.classList.add('hidden');
+    });
     document.addEventListener('click', (e) => {
         const wrap = document.getElementById('teacherUserWrap');
         if (wrap && !wrap.contains(e.target)) {
@@ -130,6 +173,6 @@
         }
     });
 </script>
-@stack('scripts')
 </body>
 </html>
+@endif

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Models\TeacherApplication;
+use App\Support\EcopiloteIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -35,6 +36,58 @@ class TeacherController extends Controller
         return view('admin.teachers.index', [
             'professeurs' => $professeurs,
         ]);
+    }
+
+    public function technical(Request $request)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        return view('admin.teachers.technical', [
+            'professeurs' => Teacher::query()->orderBy('nom_complet')->get(),
+            'matieres' => $this->subjects(),
+        ]);
+    }
+
+    public function storeTechnical(Request $request)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $request->merge([
+            'login' => EcopiloteIdentity::email((string) $request->input('login', '')),
+        ]);
+
+        $data = $request->validate([
+            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'matieres' => ['required', 'array', 'min:1'],
+            'matieres.*' => ['required', 'string', 'distinct', Rule::in($this->subjects())],
+            'paiement_valeur' => ['required', 'numeric', 'min:0'],
+            'type_paiement' => ['required', Rule::in(['vir', 'chq', 'vers', 'esp'])],
+            'periode_paiement' => ['required', Rule::in(['mois', 'trimestre', 'semestre', 'annuel'])],
+            'login' => ['required', 'email', 'max:120', Rule::unique('teachers', 'login')->ignore($request->integer('teacher_id'))],
+            'access_password' => ['required', 'string', 'min:6', 'max:120'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+        ], [
+            'teacher_id.required' => 'Sélectionnez un professeur par son ID ou son nom.',
+            'matieres.required' => 'Sélectionnez au moins une matière.',
+        ]);
+
+        $teacher = Teacher::findOrFail($data['teacher_id']);
+        $teacher->update([
+            'matiere' => implode(', ', $data['matieres']),
+            'paiement' => $teacher->paiement ?: 'salaire',
+            'paiement_valeur' => number_format((float) $data['paiement_valeur'], 2, '.', ''),
+            'type_paiement' => $data['type_paiement'],
+            'periode_paiement' => $data['periode_paiement'],
+            'login' => $data['login'],
+            'access_password' => $data['access_password'],
+            'photo_path' => $request->hasFile('photo')
+                ? $request->file('photo')->store('profiles/teachers', 'public')
+                : $teacher->photo_path,
+        ]);
+
+        return redirect()
+            ->route('admin.teachers.technical')
+            ->with('status', 'Fiche technique de '.$teacher->displayId().' validée.');
     }
 
     public function show(Request $request, Teacher $professeur)
@@ -87,7 +140,7 @@ class TeacherController extends Controller
             $data['paiement_valeur'] = number_format((float) $data['paiement_valeur'], 2, '.', '');
         }
 
-        $data['login'] = $data['nom_complet'];
+        $data['login'] = EcopiloteIdentity::loginFromName($data['nom_complet']);
         $professeur->update($data);
 
         return redirect()
@@ -116,7 +169,7 @@ class TeacherController extends Controller
                 $teacher->update([
                     'etat' => Teacher::ETAT_ACTIF,
                     'nom_complet' => $application->nom_complet,
-                    'login' => $application->nom_complet,
+                    'login' => EcopiloteIdentity::loginFromName($application->nom_complet),
                     'access_password' => $teacher->access_password ?: (string) random_int(10000000, 99999999),
                     'contact' => $application->contact,
                     'ville' => $application->ville,
@@ -128,7 +181,7 @@ class TeacherController extends Controller
             } else {
                 $teacher = Teacher::create([
                     'nom_complet' => $application->nom_complet,
-                    'login' => $application->nom_complet,
+                    'login' => EcopiloteIdentity::loginFromName($application->nom_complet),
                     'access_password' => (string) random_int(10000000, 99999999),
                     'contact' => $application->contact,
                     'ville' => $application->ville,
@@ -180,5 +233,19 @@ class TeacherController extends Controller
         }
 
         return back()->with('status', 'Candidature suspendue.');
+    }
+
+    private function subjects(): array
+    {
+        return [
+            'Mathématiques',
+            'Physique-Chimie',
+            'Français',
+            'Anglais',
+            'SVT',
+            'Histoire-Géographie',
+            'Informatique',
+            'Arabe',
+        ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 class Teacher extends Model
 {
@@ -28,6 +29,8 @@ class Teacher extends Model
         'paiement',
         'paiement_valeur',
         'type_paiement',
+        'periode_paiement',
+        'photo_path',
     ];
 
     protected function casts(): array
@@ -116,5 +119,15 @@ class Teacher extends Model
             'esp' => 'Esp',
             default => '—',
         };
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {
+            return null;
+        }
+
+        // asset() suit l'hôte de la requête courante, contrairement à Storage::url() qui fige APP_URL.
+        return asset('storage/'.ltrim(str_replace('\\', '/', $this->photo_path), '/'));
     }
 }

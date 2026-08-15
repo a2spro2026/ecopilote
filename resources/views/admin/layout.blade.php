@@ -1,9 +1,15 @@
+@php
+    $isEmbed = request()->boolean('embed');
+    $pageTitle = trim($__env->yieldContent('title')) ?: 'Centre de contrôle';
+    $pageHeading = trim($__env->yieldContent('heading')) ?: 'Vue générale';
+    $currentUrl = request()->fullUrlWithoutQuery(['embed']);
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Centre de contrôle') · ECOPILOTE</title>
+    <title>{{ $pageTitle }} · ECOPILOTE</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
     <script>
@@ -11,10 +17,26 @@
             (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
+        if (window.self !== window.top) {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('embed') !== '1') {
+                url.searchParams.set('embed', '1');
+                window.location.replace(url.toString());
+            }
+        }
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
+@if ($isEmbed)
+    <main class="px-4 py-5 sm:px-5">
+        @yield('content')
+    </main>
+    @include('partials.workspace-embed')
+    @stack('scripts')
+</body>
+</html>
+@else
 @php
     $user = auth()->user();
     $nav = config('admin.navigation', []);
@@ -28,19 +50,25 @@
 @endphp
 
 <div class="flex min-h-screen">
-    {{-- Sidebar --}}
-    <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-40 flex w-[280px] -translate-x-full flex-col border-r border-slate-800 bg-slate-950 text-slate-300 transition-transform duration-300 lg:translate-x-0">
-        <div class="flex h-16 shrink-0 items-center gap-3 border-b border-white/5 px-5">
-            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-emerald-400 text-white shadow">
+    <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-40 flex w-[280px] -translate-x-full flex-col border-r border-slate-800 bg-slate-950 text-slate-300 transition-transform duration-300 ease-out">
+        <div class="flex h-16 shrink-0 items-center gap-3 border-b border-white/5 px-4">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-emerald-400 text-white shadow">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0112 21.5a12.083 12.083 0 01-6.16-10.922L12 14z" />
                 </svg>
             </span>
-            <div>
+            <div class="min-w-0 flex-1">
                 <p class="text-sm font-extrabold tracking-tight text-white" style="font-family:'Poppins',sans-serif;">ECOPILOTE</p>
                 <p class="text-[10px] font-medium uppercase tracking-wider text-emerald-400">Centre de contrôle</p>
             </div>
+            <button type="button" onclick="toggleSidebar(false)"
+                    class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                    aria-label="Masquer le menu">
+                <svg style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                </svg>
+            </button>
         </div>
 
         <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4">
@@ -66,6 +94,12 @@
                                 if (($item['key'] ?? '') === 'eleves' && request()->routeIs('admin.students.show', 'admin.students.edit')) {
                                     $active = true;
                                 }
+                                if (($item['key'] ?? '') === 'fiche-technique-eleve' && request()->routeIs('admin.students.technical')) {
+                                    $active = true;
+                                }
+                                if (($item['key'] ?? '') === 'fiche-technique-professeur' && request()->routeIs('admin.teachers.technical')) {
+                                    $active = true;
+                                }
                                 $badge = $item['badge'] ?? null;
                                 if (($item['key'] ?? '') === 'demandes-eleves') {
                                     $badge = $pendingStudentDemandes > 0 ? $pendingStudentDemandes : null;
@@ -73,9 +107,10 @@
                                 if (($item['key'] ?? '') === 'candidatures-profs') {
                                     $badge = $pendingTeacherDemandes > 0 ? $pendingTeacherDemandes : null;
                                 }
+                                $child = (bool) ($item['child'] ?? false);
                             @endphp
-                            <a href="{{ $href }}"
-                               class="group flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition
+                            <a href="{{ $href }}" data-workspace-link data-window-title="{{ $item['label'] }}"
+                               class="group flex items-center gap-2.5 rounded-xl px-3 py-2 font-medium transition {{ $child ? 'ml-7 border-l border-slate-700 pl-3 text-[12px]' : 'text-[13px]' }}
                                       {{ $active ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                                 <svg class="h-4.5 w-4.5 shrink-0 {{ $active ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-300' }}" style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
@@ -99,18 +134,27 @@
         </div>
     </aside>
 
-    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm lg:hidden"></div>
+    <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm"></div>
 
-    <div class="flex min-h-screen flex-1 flex-col lg:pl-[280px]">
-        {{-- Header --}}
+    <div id="adminMain" class="flex h-screen flex-1 flex-col overflow-hidden transition-[padding] duration-300 ease-out">
         <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 sm:px-6">
-            <button type="button" onclick="toggleSidebar()" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden" aria-label="Menu">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <button type="button" id="sidebarToggleBtn" onclick="toggleSidebar()"
+                    class="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-emerald-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-500/40 dark:hover:from-slate-800 dark:hover:to-slate-800"
+                    aria-label="Afficher ou masquer le menu" aria-controls="adminSidebar" aria-expanded="true">
+                <span class="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 text-white shadow-sm shadow-blue-500/20 transition group-hover:scale-105">
+                    <svg id="sidebarIconOpen" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                    </svg>
+                    <svg id="sidebarIconClosed" class="hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
+                    </svg>
+                </span>
+                <span class="hidden pr-1 text-xs font-bold sm:inline" id="sidebarToggleLabel">Menu</span>
             </button>
 
             <div class="min-w-0 flex-1">
-                <h1 class="truncate text-base font-bold text-slate-900 dark:text-white sm:text-lg" style="font-family:'Poppins',sans-serif;">@yield('heading', 'Vue générale')</h1>
-                <p class="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">@yield('subtitle', 'Centre de contrôle plateforme')</p>
+                <h1 class="truncate text-base font-bold text-slate-900 dark:text-white sm:text-lg" style="font-family:'Poppins',sans-serif;">Centre de contrôle</h1>
+                <p class="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">Ouvrez plusieurs pages et réduisez-les pour les voir ensemble</p>
             </div>
 
             <div class="hidden max-w-xs flex-1 md:block lg:max-w-sm">
@@ -141,13 +185,13 @@
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Notifications</p>
                     </div>
                     @if ($pendingStudentDemandes > 0)
-                        <a href="{{ route('admin.page.demandes-eleves') }}" class="block px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <a href="{{ route('admin.page.demandes-eleves') }}" data-workspace-link data-window-title="Demandes élèves" class="block px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
                             <p class="font-semibold text-slate-800 dark:text-slate-100">Demandes élèves</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $pendingStudentDemandes }} inscription(s) en attente de validation</p>
                         </a>
                     @endif
                     @if ($pendingTeacherDemandes > 0)
-                        <a href="{{ route('admin.page.candidatures-profs') }}" class="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
+                        <a href="{{ route('admin.page.candidatures-profs') }}" data-workspace-link data-window-title="Candidatures professeurs" class="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
                             <p class="font-semibold text-slate-800 dark:text-slate-100">Candidatures professeurs</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $pendingTeacherDemandes }} candidature(s) en attente</p>
                         </a>
@@ -170,7 +214,7 @@
                     </span>
                 </button>
                 <div id="userMenu" class="absolute right-0 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                    <a href="{{ route('admin.page.configuration') }}" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Configuration</a>
+                    <a href="{{ route('admin.page.configuration') }}" data-workspace-link data-window-title="Configuration" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Configuration</a>
                     <a href="{{ route('home') }}" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Voir le site</a>
                     <form method="POST" action="{{ route('admin.logout') }}">
                         @csrf
@@ -180,29 +224,92 @@
             </div>
         </header>
 
-        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            @yield('content')
-        </main>
+        <div class="min-h-0 flex-1 bg-slate-100 dark:bg-slate-950">
+            @include('partials.workspace-windows', [
+                'storageKey' => 'ecopilote.admin.windows',
+                'initialTitle' => $pageHeading,
+                'initialUrl' => $currentUrl,
+                'accent' => 'blue',
+                'mobileCloseFunction' => 'toggleSidebar',
+            ])
+        </div>
+        {{-- Repli sans JavaScript : les fenêtres nécessitent JS, la page reste lisible sans lui. --}}
+        <noscript><main class="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">@yield('content')</main></noscript>
     </div>
 </div>
 
 <script>
-    function toggleSidebar() {
-        document.getElementById('adminSidebar').classList.toggle('-translate-x-full');
-        document.getElementById('sidebarOverlay').classList.toggle('hidden');
+    const SIDEBAR_KEY = 'ecopilote.admin.sidebarOpen';
+
+    function isDesktop() {
+        return window.matchMedia('(min-width: 1024px)').matches;
     }
+
+    function setSidebarOpen(open) {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const main = document.getElementById('adminMain');
+        const btn = document.getElementById('sidebarToggleBtn');
+        const label = document.getElementById('sidebarToggleLabel');
+        const iconOpen = document.getElementById('sidebarIconOpen');
+        const iconClosed = document.getElementById('sidebarIconClosed');
+
+        sidebar.classList.toggle('-translate-x-full', !open);
+        sidebar.classList.toggle('translate-x-0', open);
+
+        if (isDesktop()) {
+            overlay.classList.add('hidden');
+            main.style.paddingLeft = open ? '280px' : '0px';
+            localStorage.setItem(SIDEBAR_KEY, open ? '1' : '0');
+        } else {
+            overlay.classList.toggle('hidden', !open);
+            main.style.paddingLeft = '0px';
+        }
+
+        btn?.setAttribute('aria-expanded', String(open));
+        if (label) label.textContent = open ? 'Masquer' : 'Menu';
+        iconOpen?.classList.toggle('hidden', !open);
+        iconClosed?.classList.toggle('hidden', open);
+    }
+
+    function toggleSidebar(force) {
+        const sidebar = document.getElementById('adminSidebar');
+        const currentlyOpen = sidebar.classList.contains('translate-x-0');
+        setSidebarOpen(typeof force === 'boolean' ? force : !currentlyOpen);
+    }
+
+    document.addEventListener('ecopilote:close-sidebar', () => setSidebarOpen(false));
+
     function toggleTheme() {
         const root = document.documentElement;
         root.classList.toggle('dark');
         localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
     }
+
+    (function initSidebar() {
+        const open = isDesktop() ? localStorage.getItem(SIDEBAR_KEY) !== '0' : false;
+        setSidebarOpen(open);
+    })();
+
+    window.addEventListener('resize', () => {
+        if (isDesktop()) {
+            setSidebarOpen(localStorage.getItem(SIDEBAR_KEY) !== '0');
+        } else {
+            setSidebarOpen(false);
+        }
+    });
+
     document.addEventListener('click', (e) => {
         const wrap = document.getElementById('userMenuWrap');
         if (wrap && !wrap.contains(e.target)) {
             document.getElementById('userMenu')?.classList.add('hidden');
         }
+        const notif = document.getElementById('notifMenuWrap');
+        if (notif && !notif.contains(e.target)) {
+            document.getElementById('notifMenu')?.classList.add('hidden');
+        }
     });
 </script>
-@stack('scripts')
 </body>
 </html>
+@endif

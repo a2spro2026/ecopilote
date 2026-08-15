@@ -7,7 +7,12 @@
     $loginLabel = $loginLabel ?? 'E-mail';
     $loginName = $loginName ?? 'email';
     $loginType = $loginType ?? 'email';
-    $loginPlaceholder = $loginPlaceholder ?? 'vous@ecopilote.ma';
+    $loginPlaceholder = $loginPlaceholder ?? 'votre.identifiant';
+    $loginSuffix = $loginSuffix ?? ($loginType === 'email' ? \App\Support\EcopiloteIdentity::emailSuffix() : null);
+    $loginValue = old($loginName);
+    if ($loginSuffix) {
+        $loginValue = \App\Support\EcopiloteIdentity::localPart($loginValue);
+    }
     $openRegister = $errors->any() && in_array(old('_form'), ['prof_register', 'etudiant_register'], true)
         && (($registerPanel === 'prof' && old('_form') === 'prof_register')
             || ($registerPanel === 'etudiant' && old('_form') === 'etudiant_register'));
@@ -46,16 +51,28 @@
 
                     <div>
                         <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ $loginLabel }}</label>
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                        <div class="relative flex overflow-hidden rounded-xl border border-slate-300 bg-slate-50 transition focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
+                            <span class="pointer-events-none flex items-center pl-3.5 text-slate-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                 </svg>
                             </span>
-                            <input type="{{ $loginType }}" name="{{ $loginName }}" value="{{ old($loginName) }}" required
+                            <input type="{{ $loginSuffix ? 'text' : $loginType }}"
+                                   name="{{ $loginName }}"
+                                   value="{{ $loginValue }}"
+                                   required
+                                   autocomplete="username"
                                    placeholder="{{ $loginPlaceholder }}"
-                                   class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
+                                   class="min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-3 text-sm outline-none">
+                            @if ($loginSuffix)
+                                <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">
+                                    {{ $loginSuffix }}
+                                </span>
+                            @endif
                         </div>
+                        @if ($loginSuffix)
+                            <p class="mt-1.5 text-xs text-slate-500">Saisissez uniquement votre identifiant — le domaine {{ $loginSuffix }} est ajouté automatiquement.</p>
+                        @endif
                         @error($loginName) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -164,11 +181,33 @@
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Matière</label>
-                        <input type="text" name="matiere" value="{{ old('matiere') }}" required
-                               placeholder="Ex. Mathématiques"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                        @error('matiere') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        <div class="mb-1 flex items-center justify-between">
+                            <label class="text-xs font-semibold text-slate-700">Matières enseignées</label>
+                            <span class="text-[10px] font-medium text-slate-400">Une ou plusieurs</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2">
+                            @foreach ([
+                                'Mathématiques',
+                                'Physique-Chimie',
+                                'Français',
+                                'Anglais',
+                                'SVT',
+                                'Histoire-Géographie',
+                                'Informatique',
+                                'Arabe',
+                            ] as $subject)
+                                <label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200 transition hover:ring-blue-300">
+                                    <input type="checkbox"
+                                           name="matieres[]"
+                                           value="{{ $subject }}"
+                                           @checked(in_array($subject, old('matieres', []), true))
+                                           class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                    <span>{{ $subject }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('matieres') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('matieres.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>

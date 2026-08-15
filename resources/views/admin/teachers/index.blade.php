@@ -64,7 +64,7 @@
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                             <td class="font-semibold text-slate-900 dark:text-white">{{ $p->displayId() }}</td>
                             <td class="font-medium text-slate-800 dark:text-slate-100">{{ $p->nom_complet }}</td>
-                            <td class="font-semibold text-blue-700 dark:text-blue-300">{{ $p->login ?: $p->nom_complet }}</td>
+                            <td class="font-semibold text-blue-700 dark:text-blue-300">{{ $p->login ?: \App\Support\EcopiloteIdentity::loginFromName($p->nom_complet) }}</td>
                             <td>
                                 <code class="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs font-bold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
                                     {{ $p->access_password ?: '—' }}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\StudentApplication;
+use App\Support\EcopiloteIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -37,6 +38,68 @@ class StudentController extends Controller
         ]);
     }
 
+    public function technical(Request $request)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        return view('admin.students.technical', [
+            'eleves' => Student::query()->orderBy('nom_complet')->get(),
+            'matieres' => $this->subjects(),
+        ]);
+    }
+
+    public function storeTechnical(Request $request)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $request->merge([
+            'login' => EcopiloteIdentity::email((string) $request->input('login', '')),
+        ]);
+
+        $data = $request->validate([
+            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'tuteur_nom' => ['nullable', 'string', 'max:120'],
+            'contact_tuteur' => ['required', 'string', 'max:120'],
+            'matieres' => ['required', 'array', 'min:1'],
+            'matieres.*' => ['required', 'string', 'distinct', Rule::in($this->subjects())],
+            'paiement' => ['required', 'numeric', 'min:0'],
+            'mode_paiement' => ['required', Rule::in(['virement', 'cheque', 'especes', 'versement'])],
+            'periode_paiement' => ['required', Rule::in(['mois', 'trimestre', 'semestre', 'annuel'])],
+            'login' => ['required', 'email', 'max:120', Rule::unique('students', 'login')->ignore($request->integer('student_id'))],
+            'access_password' => ['required', 'string', 'min:6', 'max:120'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+        ], [
+            'student_id.required' => 'Sélectionnez un élève par son ID ou son nom.',
+            'matieres.required' => 'Sélectionnez au moins une matière.',
+        ]);
+
+        $student = Student::findOrFail($data['student_id']);
+        $student->update([
+            'tuteur_nom' => ($data['tuteur_nom'] ?? null) ?: null,
+            'contact_tuteur' => $data['contact_tuteur'],
+            'matiere' => implode(', ', $data['matieres']),
+            'paiement' => number_format((float) $data['paiement'], 2, '.', ''),
+            'mode_paiement' => $data['mode_paiement'],
+            'periode_paiement' => $data['periode_paiement'],
+            'login' => $data['login'],
+            'access_password' => $data['access_password'],
+            'photo_path' => $request->hasFile('photo')
+                ? $request->file('photo')->store('profiles/students', 'public')
+                : $student->photo_path,
+        ]);
+
+        return redirect()
+            ->route('admin.students.technical')
+            ->with('status', 'Fiche technique de '.$student->displayId().' validée.');
+    }
+
+    public function print(Request $request, Student $eleve)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        return view('admin.students.print', ['eleve' => $eleve]);
+    }
+
     public function show(Request $request, Student $eleve)
     {
         abort_unless($request->user()?->isSuperAdmin(), 403);
@@ -61,7 +124,9 @@ class StudentController extends Controller
 
         $data = $request->validate([
             'nom_complet' => ['required', 'string', 'max:120'],
+            'access_password' => ['required', 'string', 'min:6', 'max:120'],
             'contact' => ['required', 'string', 'max:120'],
+            'tuteur_nom' => ['nullable', 'string', 'max:120'],
             'contact_tuteur' => ['required', 'string', 'max:120'],
             'ville' => ['required', 'string', 'max:120'],
             'niveau_scolaire' => ['required', 'string', 'max:120'],
@@ -78,6 +143,7 @@ class StudentController extends Controller
             $data['paiement'] = null;
         }
 
+        $data['login'] = $this->uniqueLogin($data['nom_complet'], $eleve->id);
         $eleve->update($data);
 
         return redirect()
@@ -102,9 +168,12 @@ class StudentController extends Controller
 
         DB::transaction(function () use ($application) {
             if ($application->student_id) {
-                Student::whereKey($application->student_id)->update([
+                $student = Student::findOrFail($application->student_id);
+                $student->update([
                     'etat' => Student::ETAT_ACTIF,
                     'nom_complet' => $application->nom_complet,
+                    'login' => $this->uniqueLogin($application->nom_complet, $student->id),
+                    'access_password' => $student->access_password ?: (string) random_int(10000000, 99999999),
                     'contact' => $application->contact,
                     'contact_tuteur' => $application->contact_tuteur,
                     'ville' => $application->ville,
@@ -115,6 +184,8 @@ class StudentController extends Controller
             } else {
                 $student = Student::create([
                     'nom_complet' => $application->nom_complet,
+                    'login' => $this->uniqueLogin($application->nom_complet),
+                    'access_password' => (string) random_int(10000000, 99999999),
                     'contact' => $application->contact,
                     'contact_tuteur' => $application->contact_tuteur,
                     'ville' => $application->ville,
@@ -165,5 +236,37 @@ class StudentController extends Controller
         }
 
         return back()->with('status', 'Demande suspendue.');
+    }
+
+    private function uniqueLogin(string $name, ?int $exceptId = null): string
+    {
+        $base = EcopiloteIdentity::loginFromName($name);
+        $query = Student::query()->where('login', $base);
+        if ($exceptId) {
+            $query->where('id', '!=', $exceptId);
+        }
+
+        if (! $query->exists()) {
+            return $base;
+        }
+
+        $local = EcopiloteIdentity::localPart($base);
+        $suffix = $exceptId ?: (Student::query()->max('id') + 1);
+
+        return EcopiloteIdentity::email($local.'.'.$suffix);
+    }
+
+    private function subjects(): array
+    {
+        return [
+            'Mathématiques',
+            'Physique-Chimie',
+            'Français',
+            'Anglais',
+            'SVT',
+            'Histoire-Géographie',
+            'Informatique',
+            'Arabe',
+        ];
     }
 }

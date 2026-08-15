@@ -48,16 +48,21 @@
                         @csrf
                         <div>
                             <label class="mb-1.5 block text-sm font-semibold text-slate-700">E-mail</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <div class="relative flex overflow-hidden rounded-xl border border-slate-300 bg-slate-50 transition focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
+                                <span class="pointer-events-none flex items-center pl-3.5 text-slate-400">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                     </svg>
                                 </span>
-                                <input type="email" name="email" value="{{ old('email', 'zerragui@ecopilote.ma') }}" required autofocus
-                                       placeholder="zerragui@ecopilote.ma"
-                                       class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
+                                <input type="text" name="email" value="{{ \App\Support\EcopiloteIdentity::localPart(old('email', 'zerragui@ecopilote.ma')) }}" required autofocus
+                                       autocomplete="username"
+                                       placeholder="zerragui"
+                                       class="min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-3 text-sm outline-none">
+                                <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">
+                                    @ecopilote.ma
+                                </span>
                             </div>
+                            <p class="mt-1.5 text-xs text-slate-500">Saisissez uniquement votre identifiant — le domaine @ecopilote.ma est ajouté automatiquement.</p>
                         </div>
 
                         <div>
