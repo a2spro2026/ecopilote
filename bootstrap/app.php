@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'module' => \App\Http\Middleware\EnsureModuleAccess::class,
+            'teacher.auth' => \App\Http\Middleware\EnsureTeacherAuthenticated::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('admin.login'));

@@ -17,19 +17,22 @@ class DatabaseSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Super Admin',
-                'email' => 'superadmin@ecopilote.ma',
+                'name' => 'Zerragui',
+                'email' => 'zerragui@ecopilote.ma',
                 'role' => User::ROLE_SUPERADMIN,
+                'password' => '0661755048',
             ],
             [
                 'name' => 'Service Comptabilité',
                 'email' => 'comptabilite@ecopilote.ma',
                 'role' => User::ROLE_COMPTABILITE,
+                'password' => 'password',
             ],
             [
                 'name' => 'Service Accueil',
                 'email' => 'accueil@ecopilote.ma',
                 'role' => User::ROLE_ACCUEIL,
+                'password' => 'password',
             ],
         ];
 
@@ -39,9 +42,12 @@ class DatabaseSeeder extends Seeder
                 [
                     'name' => $data['name'],
                     'role' => $data['role'],
-                    'password' => 'password',
+                    'password' => $data['password'],
                 ]
             );
         }
+
+        // Remplace l'ancien compte superadmin s'il existe encore.
+        User::where('email', 'admin@ecopilote.ma')->delete();
     }
 }

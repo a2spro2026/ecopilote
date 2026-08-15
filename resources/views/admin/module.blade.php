@@ -27,7 +27,7 @@
                 </span>
                 <div>
                     <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Module {{ $module['label'] }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Cette session est prête à recevoir les données du système.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Module {{ $module['label'] }}</p>
                 </div>
             </div>
         </div>

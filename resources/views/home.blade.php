@@ -32,7 +32,7 @@
                        class="inline-flex items-center justify-center rounded-xl bg-emerald-400 px-7 py-4 text-base font-semibold text-blue-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300 hover:-translate-y-0.5">
                         Découvrir nos formations
                     </a>
-                    <a href="{{ route('portail.parents') }}"
+                    <a href="{{ route('portail.etudiant') }}"
                        class="inline-flex items-center justify-center rounded-xl border border-white/40 bg-white/10 px-7 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20">
                         S'inscrire en ligne
                     </a>

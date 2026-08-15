@@ -5,7 +5,7 @@
         ['label' => 'Catégories',     'route' => 'categories'],
         ['label' => 'Activités',      'route' => 'activites'],
         ['label' => 'Portail Profs',  'route' => 'portail.profs'],
-        ['label' => 'Portail Parents','route' => 'portail.parents'],
+        ['label' => 'Portail Étudiant','route' => 'portail.etudiant'],
     ];
 @endphp
 
