@@ -32,9 +32,9 @@ return [
             'group' => 'Utilisateurs',
             'items' => [
                 ['key' => 'eleves', 'label' => 'Élèves', 'icon' => 'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84'],
-                ['key' => 'fiche-technique-eleve', 'label' => 'Fiche Technique Élève', 'route' => 'admin.students.technical', 'child' => true, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5M9 15l2.25 2.25L15 12'],
+                ['key' => 'fiche-technique-eleve', 'label' => 'Fiche Élève', 'route' => 'admin.students.technical', 'child' => true, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5M9 15l2.25 2.25L15 12'],
                 ['key' => 'professeurs', 'label' => 'Professeurs', 'icon' => 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z'],
-                ['key' => 'fiche-technique-professeur', 'label' => 'Fiche Technique Professeur', 'route' => 'admin.teachers.technical', 'child' => true, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5M9 15l2.25 2.25L15 12'],
+                ['key' => 'fiche-technique-professeur', 'label' => 'Fiche Professeur', 'route' => 'admin.teachers.technical', 'child' => true, 'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5M9 15l2.25 2.25L15 12'],
             ],
         ],
 

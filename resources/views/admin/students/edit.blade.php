@@ -46,7 +46,7 @@
             <div>
                 <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Mot de passe d’accès</label>
                 <input type="text" name="access_password" value="{{ old('access_password', $eleve->access_password) }}" required minlength="6"
-                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800">
+                       class="ep-keep-case w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800">
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Contact</label>

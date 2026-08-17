@@ -109,7 +109,7 @@
                                 }
                                 $child = (bool) ($item['child'] ?? false);
                             @endphp
-                            <a href="{{ $href }}" data-workspace-link data-window-title="{{ $item['label'] }}"
+                            <a href="{{ $href }}" data-window-title="{{ $item['label'] }}"
                                class="group flex items-center gap-2.5 rounded-xl px-3 py-2 font-medium transition {{ $child ? 'ml-7 border-l border-slate-700 pl-3 text-[12px]' : 'text-[13px]' }}
                                       {{ $active ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                                 <svg class="h-4.5 w-4.5 shrink-0 {{ $active ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-300' }}" style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
@@ -138,33 +138,11 @@
 
     <div id="adminMain" class="flex h-screen flex-1 flex-col overflow-hidden transition-[padding] duration-300 ease-out">
         <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 sm:px-6">
-            <button type="button" id="sidebarToggleBtn" onclick="toggleSidebar()"
-                    class="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-emerald-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-500/40 dark:hover:from-slate-800 dark:hover:to-slate-800"
-                    aria-label="Afficher ou masquer le menu" aria-controls="adminSidebar" aria-expanded="true">
-                <span class="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 text-white shadow-sm shadow-blue-500/20 transition group-hover:scale-105">
-                    <svg id="sidebarIconOpen" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-                    </svg>
-                    <svg id="sidebarIconClosed" class="hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
-                    </svg>
-                </span>
-                <span class="hidden pr-1 text-xs font-bold sm:inline" id="sidebarToggleLabel">Menu</span>
-            </button>
+            @include('partials.sidebar-toggle', ['tone' => 'admin', 'onclick' => 'toggleSidebar()', 'controls' => 'adminSidebar'])
 
             <div class="min-w-0 flex-1">
                 <h1 class="truncate text-base font-bold text-slate-900 dark:text-white sm:text-lg" style="font-family:'Poppins',sans-serif;">Centre de contrôle</h1>
-                <p class="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">Ouvrez plusieurs pages et réduisez-les pour les voir ensemble</p>
-            </div>
-
-            <div class="hidden max-w-xs flex-1 md:block lg:max-w-sm">
-                <label class="relative block">
-                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-                    </span>
-                    <input type="search" placeholder="Rechercher élève, prof, séance…"
-                           class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-blue-900/40">
-                </label>
+                <p class="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">Les pages s’ouvrent en fenêtres, comme un bureau de travail</p>
             </div>
 
             <button type="button" onclick="toggleTheme()" class="relative rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-amber-300 dark:hover:bg-slate-800" aria-label="Thème">
@@ -185,13 +163,13 @@
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Notifications</p>
                     </div>
                     @if ($pendingStudentDemandes > 0)
-                        <a href="{{ route('admin.page.demandes-eleves') }}" data-workspace-link data-window-title="Demandes élèves" class="block px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <a href="{{ route('admin.page.demandes-eleves') }}" data-window-title="Demandes élèves" class="block px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
                             <p class="font-semibold text-slate-800 dark:text-slate-100">Demandes élèves</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $pendingStudentDemandes }} inscription(s) en attente de validation</p>
                         </a>
                     @endif
                     @if ($pendingTeacherDemandes > 0)
-                        <a href="{{ route('admin.page.candidatures-profs') }}" data-workspace-link data-window-title="Candidatures professeurs" class="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
+                        <a href="{{ route('admin.page.candidatures-profs') }}" data-window-title="Candidatures professeurs" class="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
                             <p class="font-semibold text-slate-800 dark:text-slate-100">Candidatures professeurs</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $pendingTeacherDemandes }} candidature(s) en attente</p>
                         </a>
@@ -201,6 +179,17 @@
                     @endif
                 </div>
             </div>
+
+            <form method="POST" action="{{ route('admin.logout') }}">
+                @csrf
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-600 to-orange-500 px-3 py-2 text-xs font-bold text-white shadow-sm shadow-rose-500/20 transition hover:brightness-110">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/>
+                    </svg>
+                    <span class="hidden sm:inline">Déconnexion</span>
+                </button>
+            </form>
 
             <div class="relative" id="userMenuWrap">
                 <button type="button" onclick="document.getElementById('userMenu').classList.toggle('hidden')"
@@ -214,26 +203,20 @@
                     </span>
                 </button>
                 <div id="userMenu" class="absolute right-0 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                    <a href="{{ route('admin.page.configuration') }}" data-workspace-link data-window-title="Configuration" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Configuration</a>
-                    <a href="{{ route('home') }}" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Voir le site</a>
-                    <form method="POST" action="{{ route('admin.logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10">Déconnexion</button>
-                    </form>
+                    <a href="{{ route('admin.page.configuration') }}" data-window-title="Configuration" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Configuration</a>
+                    <a href="{{ route('home') }}" data-mdi-skip class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">Voir le site</a>
                 </div>
             </div>
         </header>
 
-        <div class="min-h-0 flex-1 bg-slate-100 dark:bg-slate-950">
-            @include('partials.workspace-windows', [
-                'storageKey' => 'ecopilote.admin.windows',
+        <div class="flex min-h-0 flex-1 flex-col">
+            @include('partials.workspace-mdi', [
+                'storageKey' => 'ecopilote.admin.mdi',
                 'initialTitle' => $pageHeading,
                 'initialUrl' => $currentUrl,
                 'accent' => 'blue',
-                'mobileCloseFunction' => 'toggleSidebar',
             ])
         </div>
-        {{-- Repli sans JavaScript : les fenêtres nécessitent JS, la page reste lisible sans lui. --}}
         <noscript><main class="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">@yield('content')</main></noscript>
     </div>
 </div>
@@ -250,7 +233,6 @@
         const overlay = document.getElementById('sidebarOverlay');
         const main = document.getElementById('adminMain');
         const btn = document.getElementById('sidebarToggleBtn');
-        const label = document.getElementById('sidebarToggleLabel');
         const iconOpen = document.getElementById('sidebarIconOpen');
         const iconClosed = document.getElementById('sidebarIconClosed');
 
@@ -267,7 +249,7 @@
         }
 
         btn?.setAttribute('aria-expanded', String(open));
-        if (label) label.textContent = open ? 'Masquer' : 'Menu';
+        btn?.setAttribute('title', open ? 'Masquer le menu' : 'Afficher le menu');
         iconOpen?.classList.toggle('hidden', !open);
         iconClosed?.classList.toggle('hidden', open);
     }

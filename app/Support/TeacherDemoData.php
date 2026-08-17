@@ -20,12 +20,20 @@ class TeacherDemoData
 
     public function kpis(): array
     {
+        $groupes = count($this->classes());
+        $eleves = count($this->students());
+        $seancesMois = count($this->sessions('mois'));
+        $revenu = $this->teacher->paiement_valeur
+            ? number_format((float) $this->teacher->paiement_valeur, 0, ',', ' ')
+            : '12 400';
+        $solde = '3 850';
+
         return [
-            ['key' => 'cours', 'label' => 'Cours actifs', 'value' => (string) count($this->classes()), 'icon' => 'book'],
-            ['key' => 'eleves', 'label' => 'Mes élèves', 'value' => (string) count($this->students()), 'icon' => 'users'],
-            ['key' => 'seances', 'label' => 'Séances aujourd’hui', 'value' => (string) count($this->sessionsToday()), 'icon' => 'calendar'],
-            ['key' => 'docs', 'label' => 'Documents', 'value' => (string) count($this->library()), 'icon' => 'folder'],
-            ['key' => 'videos', 'label' => 'Cours enregistrés', 'value' => '6', 'icon' => 'video'],
+            ['key' => 'groupes', 'label' => 'Mes Groupes', 'value' => (string) $groupes, 'hint' => $groupes.' groupes actifs', 'up' => true, 'tone' => 'emerald', 'icon' => 'groups', 'suffix' => ''],
+            ['key' => 'eleves', 'label' => 'Mes élèves', 'value' => (string) $eleves, 'hint' => 'Suivi pédagogique', 'up' => true, 'tone' => 'blue', 'icon' => 'users', 'suffix' => ''],
+            ['key' => 'seances', 'label' => 'Séances / Mois', 'value' => (string) $seancesMois, 'hint' => 'Ce mois-ci', 'up' => true, 'tone' => 'indigo', 'icon' => 'calendar', 'suffix' => ''],
+            ['key' => 'revenu', 'label' => 'Total Revenue / Mois', 'value' => $revenu, 'hint' => 'MAD ce mois', 'up' => true, 'tone' => 'violet', 'icon' => 'money', 'suffix' => 'MAD'],
+            ['key' => 'solde', 'label' => 'Solde', 'value' => $solde, 'hint' => 'Disponible', 'up' => true, 'tone' => 'amber', 'icon' => 'wallet', 'suffix' => 'MAD'],
         ];
     }
 

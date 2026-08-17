@@ -43,7 +43,7 @@ class TeacherController extends Controller
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
         return view('admin.teachers.technical', [
-            'professeurs' => Teacher::query()->orderBy('nom_complet')->get(),
+            'professeurs' => Teacher::query()->orderBy('id')->get(),
             'matieres' => $this->subjects(),
         ]);
     }
@@ -57,37 +57,64 @@ class TeacherController extends Controller
         ]);
 
         $data = $request->validate([
-            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'teacher_id' => ['nullable', 'integer', 'exists:teachers,id'],
+            'nom_complet' => ['required', 'string', 'max:120'],
+            'contact' => ['required', 'string', 'max:120'],
+            'ville' => ['required', 'string', 'max:120'],
+            'statut' => ['required', Rule::in(['public', 'prive'])],
             'matieres' => ['required', 'array', 'min:1'],
             'matieres.*' => ['required', 'string', 'distinct', Rule::in($this->subjects())],
+            'paiement' => ['required', Rule::in(['salaire', 'commission', 'pourcentage'])],
             'paiement_valeur' => ['required', 'numeric', 'min:0'],
-            'type_paiement' => ['required', Rule::in(['vir', 'chq', 'vers', 'esp'])],
             'periode_paiement' => ['required', Rule::in(['mois', 'trimestre', 'semestre', 'annuel'])],
-            'login' => ['required', 'email', 'max:120', Rule::unique('teachers', 'login')->ignore($request->integer('teacher_id'))],
+            'login' => ['required', 'email', 'max:120', Rule::unique('teachers', 'login')->ignore($request->integer('teacher_id') ?: null)],
             'access_password' => ['required', 'string', 'min:6', 'max:120'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ], [
-            'teacher_id.required' => 'Sélectionnez un professeur par son ID ou son nom.',
             'matieres.required' => 'Sélectionnez au moins une matière.',
         ]);
 
-        $teacher = Teacher::findOrFail($data['teacher_id']);
-        $teacher->update([
+        $payload = [
+            'nom_complet' => $data['nom_complet'],
+            'contact' => $data['contact'],
+            'ville' => $data['ville'],
+            'statut' => $data['statut'],
             'matiere' => implode(', ', $data['matieres']),
-            'paiement' => $teacher->paiement ?: 'salaire',
+            'paiement' => $data['paiement'],
             'paiement_valeur' => number_format((float) $data['paiement_valeur'], 2, '.', ''),
-            'type_paiement' => $data['type_paiement'],
             'periode_paiement' => $data['periode_paiement'],
             'login' => $data['login'],
             'access_password' => $data['access_password'],
-            'photo_path' => $request->hasFile('photo')
-                ? $request->file('photo')->store('profiles/teachers', 'public')
-                : $teacher->photo_path,
-        ]);
+        ];
+
+        if ($request->hasFile('photo')) {
+            $payload['photo_path'] = $request->file('photo')->store('profiles/teachers', 'public');
+        }
+
+        if (! empty($data['teacher_id'])) {
+            $teacher = Teacher::findOrFail($data['teacher_id']);
+            $teacher->update($payload);
+            $message = 'Fiche de '.$teacher->displayId().' mise à jour.';
+        } else {
+            $teacher = Teacher::create([
+                ...$payload,
+                'niveau' => 'college',
+                'disponibilite' => 'immediat',
+                'etat' => Teacher::ETAT_ACTIF,
+            ]);
+            $message = 'Fiche de '.$teacher->displayId().' ajoutée.';
+        }
 
         return redirect()
             ->route('admin.teachers.technical')
-            ->with('status', 'Fiche technique de '.$teacher->displayId().' validée.');
+            ->with('status', $message);
+    }
+
+    public function print(Request $request, Teacher $professeur)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        return view('admin.teachers.print', ['professeur' => $professeur]);
     }
 
     public function show(Request $request, Teacher $professeur)

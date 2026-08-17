@@ -120,7 +120,7 @@ class StudentWorkspaceTest extends TestCase
 
         $this->withSession(['student_id' => $student->id, 'teacher_id' => 99])
             ->post(route('student.logout'))
-            ->assertRedirect(route('portail.etudiant'));
+            ->assertRedirect(route('home'));
 
         $this->assertNull(session('student_id'));
         $this->assertSame(99, session('teacher_id'));

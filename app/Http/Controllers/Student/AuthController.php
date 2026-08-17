@@ -75,6 +75,6 @@ class AuthController extends Controller
         $request->session()->forget('student_id');
         $request->session()->regenerateToken();
 
-        return redirect()->route('portail.etudiant');
+        return redirect()->route('home');
     }
 }

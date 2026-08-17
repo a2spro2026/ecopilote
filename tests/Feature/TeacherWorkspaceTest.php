@@ -39,7 +39,7 @@ class TeacherWorkspaceTest extends TestCase
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('teacher_applications', [
-            'nom_complet' => 'Nadia El Amrani',
+            'nom_complet' => 'NADIA EL AMRANI',
             'matiere' => 'Mathématiques, Physique-Chimie, SVT',
         ]);
     }

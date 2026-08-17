@@ -79,6 +79,7 @@ Route::prefix('administration')->group(function () {
         Route::get('/professeurs', [TeacherController::class, 'index'])->name('admin.page.professeurs');
         Route::get('/professeurs/fiche-technique', [TeacherController::class, 'technical'])->name('admin.teachers.technical');
         Route::post('/professeurs/fiche-technique', [TeacherController::class, 'storeTechnical'])->name('admin.teachers.technical.store');
+        Route::get('/professeurs/{professeur}/imprimer', [TeacherController::class, 'print'])->name('admin.teachers.print');
         Route::get('/professeurs/{professeur}', [TeacherController::class, 'show'])->name('admin.teachers.show');
         Route::get('/professeurs/{professeur}/modifier', [TeacherController::class, 'edit'])->name('admin.teachers.edit');
         Route::put('/professeurs/{professeur}', [TeacherController::class, 'update'])->name('admin.teachers.update');

@@ -97,6 +97,28 @@ class Student extends Model
         return $this->echeance ? $this->echeance->format('d/m/Y') : '—';
     }
 
+    public function modePaiementLabel(): string
+    {
+        return match ($this->mode_paiement) {
+            'virement' => 'Virement',
+            'cheque' => 'Chèque',
+            'especes' => 'Espèces',
+            'versement' => 'Versement',
+            default => $this->mode_paiement ?: '—',
+        };
+    }
+
+    public function periodePaiementLabel(): string
+    {
+        return match ($this->periode_paiement) {
+            'mois' => 'Mois',
+            'trimestre' => 'Trimestre',
+            'semestre' => 'Semestre',
+            'annuel' => 'Annuel',
+            default => $this->periode_paiement ?: '—',
+        };
+    }
+
     public function getPhotoUrlAttribute(): ?string
     {
         if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {

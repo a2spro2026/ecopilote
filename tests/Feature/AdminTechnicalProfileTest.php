@@ -21,6 +21,8 @@ class AdminTechnicalProfileTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.students.technical.store'), [
                 'student_id' => $student->id,
+                'nom_complet' => 'Yasmine Alaoui',
+                'contact' => '0600000000',
                 'tuteur_nom' => 'Ahmed Alaoui',
                 'contact_tuteur' => '0611111111',
                 'matieres' => ['Mathématiques', 'SVT'],
@@ -34,7 +36,7 @@ class AdminTechnicalProfileTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $student->refresh();
-        $this->assertSame('Ahmed Alaoui', $student->tuteur_nom);
+        $this->assertSame('AHMED ALAOUI', $student->tuteur_nom);
         $this->assertSame('Mathématiques, SVT', $student->matiere);
         $this->assertSame('yasmine.alaoui@ecopilote.ma', $student->login);
         $this->assertSame('nouveau123', $student->access_password);
@@ -59,9 +61,13 @@ class AdminTechnicalProfileTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.teachers.technical.store'), [
                 'teacher_id' => $teacher->id,
+                'nom_complet' => 'Nadia El Amrani',
+                'contact' => '0600000000',
+                'ville' => 'Casablanca',
+                'statut' => 'prive',
                 'matieres' => ['Mathématiques', 'Physique-Chimie'],
+                'paiement' => 'salaire',
                 'paiement_valeur' => '5000',
-                'type_paiement' => 'vir',
                 'periode_paiement' => 'mois',
                 'login' => 'nadia.el.amrani',
                 'access_password' => 'professeur123',
@@ -71,6 +77,7 @@ class AdminTechnicalProfileTest extends TestCase
 
         $teacher->refresh();
         $this->assertSame('Mathématiques, Physique-Chimie', $teacher->matiere);
+        $this->assertSame('salaire', $teacher->paiement);
         $this->assertSame(5000.0, (float) $teacher->paiement_valeur);
         $this->assertSame('professeur123', $teacher->access_password);
         $this->assertSame('mois', $teacher->periode_paiement);
@@ -84,6 +91,8 @@ class AdminTechnicalProfileTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.students.technical.store'), [
                 'student_id' => $student->id,
+                'nom_complet' => 'Yasmine Alaoui',
+                'contact' => '0600000000',
                 'contact_tuteur' => '0611111111',
                 'matieres' => ['Mathématiques'],
                 'paiement' => '1200',
@@ -112,17 +121,121 @@ class AdminTechnicalProfileTest extends TestCase
         $this->assertNull($student->fresh()->photo_url);
     }
 
-    public function test_technical_form_lists_students_by_id_and_by_name(): void
+    public function test_fiche_eleve_page_shows_the_student_table(): void
     {
         $student = $this->student();
+        $student->update([
+            'tuteur_nom' => 'Ahmed Alaoui',
+            'matiere' => 'Mathématiques, SVT',
+            'paiement' => '1200.00',
+            'mode_paiement' => 'virement',
+            'periode_paiement' => 'trimestre',
+        ]);
 
         $this->actingAs($this->admin())
             ->get(route('admin.students.technical'))
             ->assertOk()
-            ->assertSee('studentIdOptions')
-            ->assertSee('studentNameOptions')
+            ->assertSee('Fiche Élève')
+            ->assertSee('Nom Complet')
+            ->assertSee('Nom Tuteur')
+            ->assertSee('Matières')
+            ->assertSee('Ajouter')
+            ->assertSee('Importer Photo')
             ->assertSee($student->displayId())
-            ->assertSee('Yasmine Alaoui');
+            ->assertSee('Yasmine Alaoui')
+            ->assertSee('Ahmed Alaoui')
+            ->assertSee('Mathématiques, SVT')
+            ->assertDontSee('studentIdOptions');
+    }
+
+    public function test_superadmin_can_create_a_student_fiche(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.students.technical.store'), [
+                'nom_complet' => 'Karim Bennani',
+                'contact' => '0622222222',
+                'tuteur_nom' => 'Samira Bennani',
+                'contact_tuteur' => '0633333333',
+                'matieres' => ['Anglais', 'Français'],
+                'paiement' => '800',
+                'mode_paiement' => 'especes',
+                'periode_paiement' => 'mois',
+                'login' => 'karim.bennani',
+                'access_password' => 'eleve456',
+            ])
+            ->assertRedirect(route('admin.students.technical'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('students', [
+            'nom_complet' => 'KARIM BENNANI',
+            'contact' => '0622222222',
+            'tuteur_nom' => 'SAMIRA BENNANI',
+            'matiere' => 'Anglais, Français',
+            'mode_paiement' => 'especes',
+            'login' => 'karim.bennani@ecopilote.ma',
+        ]);
+    }
+
+    public function test_fiche_professeur_page_shows_the_teacher_table(): void
+    {
+        $teacher = Teacher::create([
+            'nom_complet' => 'Nadia El Amrani',
+            'login' => 'nadia.el.amrani@ecopilote.ma',
+            'access_password' => 'secret12',
+            'contact' => '0600000000',
+            'ville' => 'Casablanca',
+            'statut' => 'prive',
+            'matiere' => 'Mathématiques, SVT',
+            'niveau' => 'college',
+            'disponibilite' => 'immediat',
+            'etat' => Teacher::ETAT_ACTIF,
+            'paiement' => 'salaire',
+            'paiement_valeur' => '5000.00',
+            'periode_paiement' => 'mois',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.teachers.technical'))
+            ->assertOk()
+            ->assertSee('Fiche Professeur')
+            ->assertSee('Nom Complet')
+            ->assertSee('Statut')
+            ->assertSee('Matière')
+            ->assertSee('Ajouter')
+            ->assertSee('Importer Photo')
+            ->assertSee($teacher->displayId())
+            ->assertSee('Nadia El Amrani')
+            ->assertSee('Mathématiques, SVT')
+            ->assertDontSee('teacherIdOptions');
+    }
+
+    public function test_superadmin_can_create_a_teacher_fiche(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.teachers.technical.store'), [
+                'nom_complet' => 'Karim Bennani',
+                'contact' => '0622222222',
+                'ville' => 'Rabat',
+                'statut' => 'public',
+                'matieres' => ['Anglais', 'Français'],
+                'paiement' => 'commission',
+                'paiement_valeur' => '800',
+                'periode_paiement' => 'trimestre',
+                'login' => 'karim.bennani',
+                'access_password' => 'professeur456',
+            ])
+            ->assertRedirect(route('admin.teachers.technical'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teachers', [
+            'nom_complet' => 'KARIM BENNANI',
+            'contact' => '0622222222',
+            'ville' => 'RABAT',
+            'statut' => 'public',
+            'matiere' => 'Anglais, Français',
+            'paiement' => 'commission',
+            'login' => 'karim.bennani@ecopilote.ma',
+        ]);
     }
 
     private function admin(): User

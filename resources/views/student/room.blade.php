@@ -300,13 +300,14 @@
         if (!textPoint) textPoint = { x: 30, y: 50 };
         if (event.key === 'Enter') { textPoint = { x: 30, y: textPoint.y + 28 }; return; }
         if (event.key.length !== 1) return;
+        const glyph = event.key.toLocaleUpperCase('fr-FR');
         event.preventDefault();
         saveBoard();
         boardContext.globalCompositeOperation = 'source-over';
         boardContext.fillStyle = boardColor;
         boardContext.font = '600 22px "Instrument Sans", sans-serif';
-        boardContext.fillText(event.key, textPoint.x, textPoint.y);
-        textPoint.x += boardContext.measureText(event.key).width;
+        boardContext.fillText(glyph, textPoint.x, textPoint.y);
+        textPoint.x += boardContext.measureText(glyph).width;
     });
     document.querySelectorAll('.student-symbol').forEach(button => button.addEventListener('click', () => {
         if (!writingAllowed) return showMessage('Demandez d’abord l’autorisation au professeur.');

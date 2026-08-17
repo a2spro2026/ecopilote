@@ -24,6 +24,14 @@
         'amber' => 'from-amber-400 to-orange-500',
         'violet' => 'from-violet-500 to-purple-600',
     ];
+    $cardSkin = [
+        'blue' => ['wash' => 'from-blue-600/12 via-sky-400/5 to-transparent', 'ring' => 'ring-blue-500/15', 'bar' => 'from-blue-500 to-indigo-400', 'glow' => 'shadow-blue-500/20'],
+        'emerald' => ['wash' => 'from-emerald-500/12 via-teal-400/5 to-transparent', 'ring' => 'ring-emerald-500/15', 'bar' => 'from-emerald-500 to-teal-400', 'glow' => 'shadow-emerald-500/20'],
+        'indigo' => ['wash' => 'from-indigo-500/12 via-blue-400/5 to-transparent', 'ring' => 'ring-indigo-500/15', 'bar' => 'from-indigo-500 to-blue-400', 'glow' => 'shadow-indigo-500/20'],
+        'green' => ['wash' => 'from-green-500/12 via-emerald-400/5 to-transparent', 'ring' => 'ring-green-500/20', 'bar' => 'from-green-500 to-emerald-400', 'glow' => 'shadow-green-500/25'],
+        'amber' => ['wash' => 'from-amber-500/15 via-orange-400/5 to-transparent', 'ring' => 'ring-amber-500/20', 'bar' => 'from-amber-500 to-orange-400', 'glow' => 'shadow-amber-500/20'],
+        'violet' => ['wash' => 'from-violet-500/12 via-fuchsia-400/5 to-transparent', 'ring' => 'ring-violet-500/15', 'bar' => 'from-violet-500 to-fuchsia-400', 'glow' => 'shadow-violet-500/20'],
+    ];
 @endphp
 
 {{-- Stats figées + contenu scrollable --}}
@@ -31,14 +39,20 @@
     <div class="classes-lock-toolbar">
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             @foreach ($data['stats'] as $stat)
-                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ $stat['label'] }}</p>
-                            <p class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $stat['value'] }}</p>
-                            <p class="mt-1 text-[11px] font-medium {{ $stat['up'] ? 'text-emerald-600' : 'text-amber-600' }}">{{ $stat['hint'] }}</p>
+                @php $skin = $cardSkin[$stat['tone']] ?? $cardSkin['blue']; @endphp
+                <article class="group relative overflow-hidden rounded-2xl border border-white/70 bg-white p-4 shadow-lg {{ $skin['glow'] }} ring-1 {{ $skin['ring'] }} transition duration-300 hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                    <div class="pointer-events-none absolute inset-0 bg-gradient-to-br {{ $skin['wash'] }}"></div>
+                    <div class="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-gradient-to-br {{ $toneBg[$stat['tone']] }} opacity-20 blur-2xl transition group-hover:opacity-40"></div>
+                    <div class="relative flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{{ $stat['label'] }}</p>
+                            <p class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $stat['value'] }}</p>
+                            <p class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold {{ $stat['up'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' }}">
+                                <span>{{ $stat['up'] ? '▲' : '●' }}</span>
+                                {{ $stat['hint'] }}
+                            </p>
                         </div>
-                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br {{ $toneBg[$stat['tone']] }} text-white shadow">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br {{ $toneBg[$stat['tone']] }} text-white shadow-lg {{ $skin['glow'] }}">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 @if ($stat['icon'] === 'users')
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766"/>
@@ -52,7 +66,10 @@
                             </svg>
                         </span>
                     </div>
-                </div>
+                    <div class="relative mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <span class="absolute inset-y-0 left-0 w-3/4 rounded-full bg-gradient-to-r {{ $skin['bar'] }}"></span>
+                    </div>
+                </article>
             @endforeach
         </div>
     </div>

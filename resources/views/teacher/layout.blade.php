@@ -60,19 +60,22 @@
 @endphp
 
 <div class="flex min-h-screen">
-    <aside id="teacherSidebar" class="fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0">
+    <aside id="teacherSidebar" class="fixed inset-y-0 left-0 z-40 flex w-[272px] -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-300">
         <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 px-5">
             <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-500 text-white shadow-sm">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
             </span>
-            <div>
+            <div class="min-w-0 flex-1">
                 <p class="text-sm font-extrabold text-slate-900" style="font-family:'Poppins',sans-serif;">ECOPILOTE</p>
                 <p class="text-[10px] font-medium uppercase tracking-wider text-emerald-600">Espace enseignant</p>
             </div>
+            <button type="button" onclick="toggleTeacherSidebar(false)" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Masquer le menu">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+            </button>
         </div>
 
         <div class="border-b border-slate-100 px-4 py-3">
-            <a href="{{ route('teacher.salle') }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95">
+            <a href="{{ route('teacher.salle') }}" data-mdi-skip class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95">
                 Entrer dans la salle
             </a>
         </div>
@@ -84,7 +87,7 @@
                     <div class="space-y-0.5">
                         @foreach ($section['items'] as $item)
                             @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'].'.*'); @endphp
-                            <a href="{{ route($item['route']) }}" data-workspace-link data-window-title="{{ $item['label'] }}"
+                            <a href="{{ route($item['route']) }}" data-window-title="{{ $item['label'] }}"
                                class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition {{ $active ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <svg class="h-[18px] w-[18px] shrink-0 {{ $active ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
@@ -100,16 +103,14 @@
 
     <div id="teacherOverlay" onclick="toggleTeacherSidebar()" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden"></div>
 
-    <div class="flex h-screen flex-1 flex-col overflow-hidden lg:pl-[272px]">
+    <div id="teacherMain" class="flex h-screen flex-1 flex-col overflow-hidden transition-[padding] duration-300 ease-out">
         <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
-            <button type="button" onclick="toggleTeacherSidebar()" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 lg:hidden" aria-label="Menu">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </button>
+            @include('partials.sidebar-toggle', ['tone' => 'teacher', 'onclick' => 'toggleTeacherSidebar()', 'controls' => 'teacherSidebar'])
             <div class="min-w-0 flex-1">
                 <h1 class="truncate text-base font-bold text-slate-900 sm:text-lg" style="font-family:'Poppins',sans-serif;">Bureau pédagogique</h1>
-                <p class="hidden text-xs text-slate-500 sm:block">Ouvrez plusieurs pages et réduisez-les pour les voir ensemble</p>
+                <p class="hidden text-xs text-slate-500 sm:block">Les pages s’ouvrent en fenêtres, comme un bureau de travail</p>
             </div>
-            <a href="{{ route('teacher.salle') }}"
+            <a href="{{ route('teacher.salle') }}" data-mdi-skip
                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90"
                aria-label="Retour à la salle">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -124,6 +125,7 @@
             <a href="{{ route('teacher.notifications') }}" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50" aria-label="Notifications">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0"/></svg>
             </a>
+            @include('partials.school-logout', ['action' => route('teacher.logout'), 'tone' => 'teacher'])
             <div class="relative" id="teacherUserWrap">
                 <button type="button" onclick="document.getElementById('teacherUserMenu').classList.toggle('hidden')" class="flex items-center gap-2 rounded-xl border border-slate-200 py-1.5 pl-1.5 pr-2.5 hover:bg-slate-50">
                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 text-xs font-bold text-white">
@@ -136,36 +138,55 @@
                 </button>
                 <div id="teacherUserMenu" class="absolute right-0 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                     <a href="{{ route('teacher.profil') }}" class="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">Mon profil</a>
-                    <form method="POST" action="{{ route('teacher.logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50">Déconnexion</button>
-                    </form>
                 </div>
             </div>
         </header>
 
-        <div class="min-h-0 flex-1 bg-slate-100">
-            @include('partials.workspace-windows', [
-                'storageKey' => 'ecopilote.teacher.windows',
+        <div class="flex min-h-0 flex-1 flex-col">
+            @include('partials.workspace-mdi', [
+                'storageKey' => 'ecopilote.teacher.mdi',
                 'initialTitle' => $pageHeading,
                 'initialUrl' => $currentUrl,
                 'accent' => 'emerald',
             ])
         </div>
-        {{-- Repli sans JavaScript : les fenêtres nécessitent JS, la page reste lisible sans lui. --}}
         <noscript><main class="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">@yield('content')</main></noscript>
     </div>
 </div>
 
 <script>
-    function toggleTeacherSidebar() {
-        document.getElementById('teacherSidebar').classList.toggle('-translate-x-full');
-        document.getElementById('teacherOverlay').classList.toggle('hidden');
+    const TEACHER_SIDEBAR_KEY = 'ecopilote.teacher.sidebarOpen';
+    const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
+
+    function setTeacherSidebarOpen(open) {
+        const sidebar = document.getElementById('teacherSidebar');
+        const overlay = document.getElementById('teacherOverlay');
+        const main = document.getElementById('teacherMain');
+        const btn = document.getElementById('sidebarToggleBtn');
+        sidebar.classList.toggle('-translate-x-full', !open);
+        sidebar.classList.toggle('translate-x-0', open);
+        if (isDesktop()) {
+            overlay.classList.add('hidden');
+            main.style.paddingLeft = open ? '272px' : '0px';
+            localStorage.setItem(TEACHER_SIDEBAR_KEY, open ? '1' : '0');
+        } else {
+            overlay.classList.toggle('hidden', !open);
+            main.style.paddingLeft = '0px';
+        }
+        btn?.setAttribute('aria-expanded', String(open));
+        btn?.setAttribute('title', open ? 'Masquer le menu' : 'Afficher le menu');
+        document.getElementById('sidebarIconOpen')?.classList.toggle('hidden', !open);
+        document.getElementById('sidebarIconClosed')?.classList.toggle('hidden', open);
     }
-    document.addEventListener('ecopilote:close-sidebar', () => {
-        document.getElementById('teacherSidebar')?.classList.add('-translate-x-full');
-        document.getElementById('teacherOverlay')?.classList.add('hidden');
-    });
+
+    function toggleTeacherSidebar(force) {
+        const currentlyOpen = document.getElementById('teacherSidebar').classList.contains('translate-x-0');
+        setTeacherSidebarOpen(typeof force === 'boolean' ? force : !currentlyOpen);
+    }
+
+    setTeacherSidebarOpen(isDesktop() ? localStorage.getItem(TEACHER_SIDEBAR_KEY) !== '0' : false);
+    window.addEventListener('resize', () => setTeacherSidebarOpen(isDesktop() ? localStorage.getItem(TEACHER_SIDEBAR_KEY) !== '0' : false));
+    document.addEventListener('ecopilote:close-sidebar', () => setTeacherSidebarOpen(false));
     document.addEventListener('click', (e) => {
         const wrap = document.getElementById('teacherUserWrap');
         if (wrap && !wrap.contains(e.target)) {

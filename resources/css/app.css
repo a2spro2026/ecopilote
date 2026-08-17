@@ -1,5 +1,21 @@
 @import 'tailwindcss';
 
+html {
+    text-transform: uppercase;
+}
+
+input[type='password'],
+input[name='password'],
+input[name='access_password'],
+input[name='current_password'],
+input[name='password_confirmation'],
+code,
+pre,
+kbd,
+.ep-keep-case {
+    text-transform: none;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -303,5 +319,172 @@ main table tbody td > div.flex {
 .admin-tabs-bar::-webkit-scrollbar-thumb {
     background: rgb(148 163 184 / 0.7);
     border-radius: 9999px;
+}
+
+.mdi-desktop {
+    background: #4b5563;
+}
+
+.dark .mdi-desktop {
+    background: #1e293b;
+}
+
+.mdi-window {
+    min-width: 360px;
+    min-height: 240px;
+}
+
+.mdi-window-active .mdi-titlebar {
+    background: #1e3a5f;
+}
+
+.mdi-ctrl {
+    display: inline-flex;
+    height: 18px;
+    width: 22px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    font-size: 11px;
+    line-height: 1;
+    color: #e2e8f0;
+}
+
+.mdi-ctrl:hover {
+    background: rgb(255 255 255 / 0.15);
+}
+
+.mdi-ctrl-close:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.mdi-resize {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 14px;
+    width: 14px;
+    cursor: nwse-resize;
+    background:
+        linear-gradient(135deg, transparent 50%, rgb(100 116 139 / 0.9) 50%);
+}
+
+.school-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 9999px;
+    padding: 0.28rem 0.45rem 0.28rem 0.35rem;
+    color: #fff;
+    box-shadow:
+        0 8px 18px rgb(15 23 42 / 0.18),
+        inset 0 1px 0 rgb(255 255 255 / 0.25);
+    transition: transform 160ms ease, filter 160ms ease;
+}
+
+.school-logout:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+.school-logout--teacher {
+    background: linear-gradient(135deg, #12352f 0%, #0f766e 52%, #ca8a04 160%);
+}
+
+.school-logout--student {
+    background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 48%, #0891b2 120%);
+}
+
+.school-logout-icon,
+.school-logout-door {
+    display: inline-flex;
+    height: 1.7rem;
+    width: 1.7rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.16);
+}
+
+.school-logout-icon svg,
+.school-logout-door svg {
+    height: 0.95rem;
+    width: 0.95rem;
+}
+
+.school-logout-copy {
+    display: none;
+    line-height: 1.05;
+    text-align: left;
+}
+
+.school-logout-kicker {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.78;
+}
+
+.school-logout-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (min-width: 640px) {
+    .school-logout-copy {
+        display: block;
+        padding-right: 0.15rem;
+    }
+}
+
+.sidebar-rail-btn {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 1rem;
+    color: #fff;
+    box-shadow:
+        0 10px 18px rgb(15 23 42 / 0.16),
+        inset 0 1px 0 rgb(255 255 255 / 0.28);
+    transition: transform 160ms ease, filter 160ms ease;
+}
+
+.sidebar-rail-btn:hover {
+    transform: translateY(-1px) scale(1.04);
+    filter: brightness(1.08);
+}
+
+.sidebar-rail-btn--admin {
+    background: linear-gradient(145deg, #1d4ed8 0%, #2563eb 42%, #10b981 120%);
+}
+
+.sidebar-rail-btn--teacher {
+    background: linear-gradient(145deg, #0f766e 0%, #059669 55%, #ca8a04 140%);
+}
+
+.sidebar-rail-btn--student {
+    background: linear-gradient(145deg, #3730a3 0%, #4f46e5 48%, #06b6d4 130%);
+}
+
+.sidebar-rail-glyph {
+    display: flex;
+    height: 1.35rem;
+    width: 1.35rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-rail-icon {
+    height: 1.35rem;
+    width: 1.35rem;
 }
 

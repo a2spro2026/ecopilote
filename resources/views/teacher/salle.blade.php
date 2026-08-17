@@ -508,7 +508,7 @@
     }
 
     function drawText(text, x, y, color = document.getElementById('boardColor').value) {
-        const lines = String(text).split(/\r?\n/);
+        const lines = String(text).toLocaleUpperCase('fr-FR').split(/\r?\n/);
         if (!lines.length || (lines.length === 1 && !lines[0])) return;
         snapshot();
         const size = fontSize();
@@ -1265,7 +1265,7 @@
 
         if (printable) {
             event.preventDefault();
-            typing.text += event.key;
+            typing.text += event.key.toLocaleUpperCase('fr-FR');
             caretVisible = true;
             renderTyping(true);
         }

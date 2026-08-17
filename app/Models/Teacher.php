@@ -121,6 +121,17 @@ class Teacher extends Model
         };
     }
 
+    public function periodePaiementLabel(): string
+    {
+        return match ($this->periode_paiement) {
+            'mois' => 'Mois',
+            'trimestre' => 'Trimestre',
+            'semestre' => 'Semestre',
+            'annuel' => 'Annuel',
+            default => $this->periode_paiement ?: '—',
+        };
+    }
+
     public function getPhotoUrlAttribute(): ?string
     {
         if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {

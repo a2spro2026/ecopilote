@@ -18,7 +18,7 @@ class EcopiloteIdentity
      */
     public static function email(string $value): string
     {
-        $value = trim($value);
+        $value = strtolower(trim($value));
 
         if ($value === '' || str_contains($value, '@')) {
             return $value;

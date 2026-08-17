@@ -43,7 +43,7 @@ class StudentController extends Controller
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
         return view('admin.students.technical', [
-            'eleves' => Student::query()->orderBy('nom_complet')->get(),
+            'eleves' => Student::query()->orderBy('id')->get(),
             'matieres' => $this->subjects(),
         ]);
     }
@@ -57,7 +57,9 @@ class StudentController extends Controller
         ]);
 
         $data = $request->validate([
-            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'student_id' => ['nullable', 'integer', 'exists:students,id'],
+            'nom_complet' => ['required', 'string', 'max:120'],
+            'contact' => ['required', 'string', 'max:120'],
             'tuteur_nom' => ['nullable', 'string', 'max:120'],
             'contact_tuteur' => ['required', 'string', 'max:120'],
             'matieres' => ['required', 'array', 'min:1'],
@@ -65,17 +67,17 @@ class StudentController extends Controller
             'paiement' => ['required', 'numeric', 'min:0'],
             'mode_paiement' => ['required', Rule::in(['virement', 'cheque', 'especes', 'versement'])],
             'periode_paiement' => ['required', Rule::in(['mois', 'trimestre', 'semestre', 'annuel'])],
-            'login' => ['required', 'email', 'max:120', Rule::unique('students', 'login')->ignore($request->integer('student_id'))],
+            'login' => ['required', 'email', 'max:120', Rule::unique('students', 'login')->ignore($request->integer('student_id') ?: null)],
             'access_password' => ['required', 'string', 'min:6', 'max:120'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ], [
-            'student_id.required' => 'Sélectionnez un élève par son ID ou son nom.',
             'matieres.required' => 'Sélectionnez au moins une matière.',
         ]);
 
-        $student = Student::findOrFail($data['student_id']);
-        $student->update([
+        $payload = [
+            'nom_complet' => $data['nom_complet'],
             'tuteur_nom' => ($data['tuteur_nom'] ?? null) ?: null,
+            'contact' => $data['contact'],
             'contact_tuteur' => $data['contact_tuteur'],
             'matiere' => implode(', ', $data['matieres']),
             'paiement' => number_format((float) $data['paiement'], 2, '.', ''),
@@ -83,14 +85,30 @@ class StudentController extends Controller
             'periode_paiement' => $data['periode_paiement'],
             'login' => $data['login'],
             'access_password' => $data['access_password'],
-            'photo_path' => $request->hasFile('photo')
-                ? $request->file('photo')->store('profiles/students', 'public')
-                : $student->photo_path,
-        ]);
+        ];
+
+        if ($request->hasFile('photo')) {
+            $payload['photo_path'] = $request->file('photo')->store('profiles/students', 'public');
+        }
+
+        if (! empty($data['student_id'])) {
+            $student = Student::findOrFail($data['student_id']);
+            $student->update($payload);
+            $message = 'Fiche de '.$student->displayId().' mise à jour.';
+        } else {
+            $student = Student::create([
+                ...$payload,
+                'ville' => 'Non renseignée',
+                'niveau_scolaire' => 'Non renseigné',
+                'type_cours' => 'en_groupe',
+                'etat' => Student::ETAT_ACTIF,
+            ]);
+            $message = 'Fiche de '.$student->displayId().' ajoutée.';
+        }
 
         return redirect()
             ->route('admin.students.technical')
-            ->with('status', 'Fiche technique de '.$student->displayId().' validée.');
+            ->with('status', $message);
     }
 
     public function print(Request $request, Student $eleve)
