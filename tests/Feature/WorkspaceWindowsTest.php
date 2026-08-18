@@ -72,7 +72,7 @@ class WorkspaceWindowsTest extends TestCase
     {
         $admin = User::factory()->create([
             'role' => User::ROLE_SUPERADMIN,
-            'email' => 'hanan@ecopilote.ma',
+            'email' => 'hanan@esipres.com',
         ]);
         $student = $this->student();
 
@@ -107,7 +107,7 @@ class WorkspaceWindowsTest extends TestCase
         $admin = User::factory()->create(['role' => User::ROLE_SUPERADMIN]);
         $teacher = Teacher::query()->create([
             'nom_complet' => 'Nadia El Amrani',
-            'login' => 'nadia.el.amrani@ecopilote.ma',
+            'login' => 'nadia.el.amrani@esipres.com',
             'access_password' => 'secret12',
             'contact' => '0600000000',
             'ville' => 'Casablanca',
@@ -137,7 +137,7 @@ class WorkspaceWindowsTest extends TestCase
     {
         return Student::create([
             'nom_complet' => 'Yasmine Alaoui',
-            'login' => 'yasmine.alaoui@ecopilote.ma',
+            'login' => 'yasmine.alaoui@esipres.com',
             'access_password' => 'eleve123',
             'contact' => '0600000000',
             'contact_tuteur' => '0611111111',

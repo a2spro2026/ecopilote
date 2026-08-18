@@ -38,7 +38,7 @@ class AdminTechnicalProfileTest extends TestCase
         $student->refresh();
         $this->assertSame('AHMED ALAOUI', $student->tuteur_nom);
         $this->assertSame('Mathématiques, SVT', $student->matiere);
-        $this->assertSame('yasmine.alaoui@ecopilote.ma', $student->login);
+        $this->assertSame('yasmine.alaoui@esipres.com', $student->login);
         $this->assertSame('nouveau123', $student->access_password);
         $this->assertSame('trimestre', $student->periode_paiement);
     }
@@ -47,7 +47,7 @@ class AdminTechnicalProfileTest extends TestCase
     {
         $teacher = Teacher::create([
             'nom_complet' => 'Nadia El Amrani',
-            'login' => 'nadia.el.amrani@ecopilote.ma',
+            'login' => 'nadia.el.amrani@esipres.com',
             'access_password' => 'secret12',
             'contact' => '0600000000',
             'ville' => 'Casablanca',
@@ -172,7 +172,7 @@ class AdminTechnicalProfileTest extends TestCase
             'tuteur_nom' => 'SAMIRA BENNANI',
             'matiere' => 'Anglais, Français',
             'mode_paiement' => 'especes',
-            'login' => 'karim.bennani@ecopilote.ma',
+            'login' => 'karim.bennani@esipres.com',
         ]);
     }
 
@@ -180,7 +180,7 @@ class AdminTechnicalProfileTest extends TestCase
     {
         $teacher = Teacher::create([
             'nom_complet' => 'Nadia El Amrani',
-            'login' => 'nadia.el.amrani@ecopilote.ma',
+            'login' => 'nadia.el.amrani@esipres.com',
             'access_password' => 'secret12',
             'contact' => '0600000000',
             'ville' => 'Casablanca',
@@ -234,7 +234,7 @@ class AdminTechnicalProfileTest extends TestCase
             'statut' => 'public',
             'matiere' => 'Anglais, Français',
             'paiement' => 'commission',
-            'login' => 'karim.bennani@ecopilote.ma',
+            'login' => 'karim.bennani@esipres.com',
         ]);
     }
 
@@ -247,7 +247,7 @@ class AdminTechnicalProfileTest extends TestCase
     {
         return Student::create([
             'nom_complet' => 'Yasmine Alaoui',
-            'login' => 'yasmine.alaoui@ecopilote.ma',
+            'login' => 'yasmine.alaoui@esipres.com',
             'access_password' => 'eleve123',
             'contact' => '0600000000',
             'contact_tuteur' => '0611111111',

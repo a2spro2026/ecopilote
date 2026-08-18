@@ -199,6 +199,9 @@ class StudentController extends Controller
                     'matiere' => $application->matiere,
                     'type_cours' => $application->type_cours,
                 ]);
+                if ($application->photo_path && ! $student->photo_path) {
+                    $student->update(['photo_path' => $application->photo_path]);
+                }
             } else {
                 $student = Student::create([
                     'nom_complet' => $application->nom_complet,
@@ -210,6 +213,7 @@ class StudentController extends Controller
                     'niveau_scolaire' => $application->niveau_scolaire,
                     'matiere' => $application->matiere,
                     'type_cours' => $application->type_cours,
+                    'photo_path' => $application->photo_path,
                     'etat' => Student::ETAT_ACTIF,
                 ]);
                 $application->student_id = $student->id;

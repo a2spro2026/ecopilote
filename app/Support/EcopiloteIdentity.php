@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 class EcopiloteIdentity
 {
-    public const DOMAIN = 'ecopilote.ma';
+    public const DOMAIN = 'esipres.com';
 
     public static function emailSuffix(): string
     {
@@ -14,7 +14,7 @@ class EcopiloteIdentity
     }
 
     /**
-     * Complète un identifiant avec @ecopilote.ma s’il n’a pas déjà de domaine.
+     * Complète un identifiant avec @esipres.com s’il n’a pas déjà de domaine.
      */
     public static function email(string $value): string
     {
@@ -28,7 +28,7 @@ class EcopiloteIdentity
     }
 
     /**
-     * Partie locale à afficher dans le champ (sans le suffixe ECOPILOTE).
+     * Partie locale à afficher dans le champ (sans le suffixe E-SiPrès).
      */
     public static function localPart(?string $email): string
     {
@@ -47,7 +47,7 @@ class EcopiloteIdentity
     }
 
     /**
-     * Login professeur dérivé du nom : « Nadia El Amrani » → nadia.el.amrani@ecopilote.ma
+     * Login professeur dérivé du nom : « Nadia El Amrani » → nadia.el.amrani@esipres.com
      */
     public static function loginFromName(string $name): string
     {

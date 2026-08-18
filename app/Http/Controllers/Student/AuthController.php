@@ -8,6 +8,7 @@ use App\Models\StudentApplication;
 use App\Support\EcopiloteIdentity;
 use App\Support\WorkspaceSession;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -53,18 +54,44 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $subjects = [
+            'Mathématiques',
+            'Physique-Chimie',
+            'Français',
+            'Anglais',
+            'SVT',
+            'Histoire-Géographie',
+            'Informatique',
+            'Arabe',
+        ];
+
         $data = $request->validate([
             'nom_complet' => ['required', 'string', 'max:120'],
             'contact' => ['required', 'string', 'max:120'],
             'contact_tuteur' => ['required', 'string', 'max:120'],
             'ville' => ['required', 'string', 'max:120'],
             'niveau_scolaire' => ['required', 'string', 'max:120'],
-            'matiere' => ['required', 'string', 'max:120'],
+            'matieres' => ['required', 'array', 'min:1'],
+            'matieres.*' => ['required', 'string', 'distinct', Rule::in($subjects)],
             'type_cours' => ['required', 'in:individuel,en_groupe'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+        ], [
+            'matieres.required' => 'Sélectionnez au moins une matière.',
+            'matieres.min' => 'Sélectionnez au moins une matière.',
         ]);
+
+        unset($data['photo']);
+        $data['matiere'] = implode(', ', $data['matieres']);
+        unset($data['matieres']);
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('profiles/applications', 'public');
+        }
 
         StudentApplication::create([
             ...$data,
+            'photo_path' => $photoPath,
             'etat' => StudentApplication::ETAT_EN_ATTENTE,
         ]);
 

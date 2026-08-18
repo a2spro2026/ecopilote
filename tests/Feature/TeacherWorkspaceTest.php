@@ -19,7 +19,7 @@ class TeacherWorkspaceTest extends TestCase
     {
         $this->get('/portail-profs')
             ->assertOk()
-            ->assertSee('@ecopilote.ma')
+            ->assertSee('@esipres.com')
             ->assertSee('votre.identifiant')
             ->assertSee('Matières enseignées')
             ->assertSee('Physique-Chimie');
@@ -67,7 +67,7 @@ class TeacherWorkspaceTest extends TestCase
     {
         $this->get('/administration/login')
             ->assertOk()
-            ->assertSee('@ecopilote.ma')
+            ->assertSee('@esipres.com')
             ->assertSee('votre.identifiant');
         $this->get('/administration')->assertRedirect(route('admin.login'));
     }
@@ -76,8 +76,9 @@ class TeacherWorkspaceTest extends TestCase
     {
         $this->get('/portail-etudiant')
             ->assertOk()
-            ->assertSee('@ecopilote.ma')
-            ->assertSee('votre.identifiant');
+            ->assertSee('@esipres.com')
+            ->assertSee('votre.identifiant')
+            ->assertSee('Importer');
     }
 
     public function test_active_teacher_is_redirected_to_workspace_after_login(): void
@@ -152,7 +153,7 @@ class TeacherWorkspaceTest extends TestCase
     {
         return Teacher::query()->create(array_merge([
             'nom_complet' => 'Nadia El Amrani',
-            'login' => 'nadia.el.amrani@ecopilote.ma',
+            'login' => 'nadia.el.amrani@esipres.com',
             'access_password' => 'secret12',
             'contact' => '0600000000',
             'ville' => 'Casablanca',

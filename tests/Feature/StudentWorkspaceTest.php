@@ -126,11 +126,41 @@ class StudentWorkspaceTest extends TestCase
         $this->assertSame(99, session('teacher_id'));
     }
 
+    public function test_student_can_register_with_a_photo(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $this->from(route('portail.etudiant'))
+            ->post(route('portail.etudiant.register'), [
+                '_form' => 'etudiant_register',
+                'nom_complet' => 'Yassine Bennani',
+                'contact' => '0600000000',
+                'contact_tuteur' => '0611111111',
+                'ville' => 'Casablanca',
+                'niveau_scolaire' => '2nde',
+                'matieres' => ['Mathématiques'],
+                'type_cours' => 'individuel',
+                'photo' => UploadedFile::fake()->create('portrait.jpg', 120, 'image/jpeg'),
+            ])
+            ->assertRedirect(route('portail.etudiant'))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('student_applications', [
+            'nom_complet' => 'YASSINE BENNANI',
+            'matiere' => 'Mathématiques',
+        ]);
+
+        $path = \App\Models\StudentApplication::query()->value('photo_path');
+        $this->assertNotNull($path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($path);
+    }
+
     private function student(array $attributes = []): Student
     {
         return Student::create(array_merge([
             'nom_complet' => 'Yasmine Alaoui',
-            'login' => 'yasmine.alaoui@ecopilote.ma',
+            'login' => 'yasmine.alaoui@esipres.com',
             'access_password' => 'eleve123',
             'contact' => '0600000000',
             'contact_tuteur' => '0611111111',

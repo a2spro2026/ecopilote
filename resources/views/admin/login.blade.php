@@ -18,7 +18,7 @@
         <div class="pointer-events-none absolute inset-0 opacity-30"
              style="background-image:radial-gradient(circle at 15% 20%, #3b82f6 0, transparent 35%), radial-gradient(circle at 85% 80%, #10b981 0, transparent 35%);"></div>
 
-        <div class="relative w-full max-w-md">
+        <div class="relative w-full max-w-2xl">
             <div class="mb-6 text-center">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
                     <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-400 text-white shadow-lg ring-1 ring-white/20">
@@ -49,7 +49,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.login.attempt') }}" class="space-y-5" autocomplete="off">
+                    <form method="POST" action="{{ route('admin.login.attempt') }}" class="grid gap-4 sm:grid-cols-2" autocomplete="off">
                         @csrf
                         <div>
                             <label class="mb-1.5 block text-sm font-semibold text-slate-700">E-mail</label>
@@ -64,10 +64,10 @@
                                        placeholder="votre.identifiant"
                                        class="min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-3 text-sm outline-none">
                                 <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">
-                                    @ecopilote.ma
+                                    {{ \App\Support\EcopiloteIdentity::emailSuffix() }}
                                 </span>
                             </div>
-                            <p class="mt-1.5 text-xs text-slate-500">Saisissez uniquement votre identifiant — le domaine @ecopilote.ma est ajouté automatiquement.</p>
+                            <p class="mt-1.5 text-xs text-slate-500">Saisissez uniquement votre identifiant — le domaine {{ \App\Support\EcopiloteIdentity::emailSuffix() }} est ajouté automatiquement.</p>
                         </div>
 
                         <div>
@@ -93,7 +93,7 @@
                         </div>
 
                         <button type="submit"
-                                class="w-full rounded-xl bg-gradient-to-r from-blue-700 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-800 hover:to-emerald-700 hover:-translate-y-0.5">
+                                class="sm:col-span-2 w-full rounded-xl bg-gradient-to-r from-blue-700 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-800 hover:to-emerald-700 hover:-translate-y-0.5">
                             Ouvrir ma session
                         </button>
                     </form>

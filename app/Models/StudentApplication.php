@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class StudentApplication extends Model
 {
@@ -21,6 +22,7 @@ class StudentApplication extends Model
         'niveau_scolaire',
         'matiere',
         'type_cours',
+        'photo_path',
         'etat',
         'student_id',
     ];
@@ -47,5 +49,14 @@ class StudentApplication extends Model
             self::ETAT_SUSPENDUE => 'Suspendue',
             default => (string) $this->etat,
         };
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {
+            return null;
+        }
+
+        return asset('storage/'.ltrim(str_replace('\\', '/', $this->photo_path), '/'));
     }
 }

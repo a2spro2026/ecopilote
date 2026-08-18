@@ -9,6 +9,17 @@
     $loginType = $loginType ?? 'email';
     $loginPlaceholder = $loginPlaceholder ?? 'votre.identifiant';
     $loginSuffix = $loginSuffix ?? ($loginType === 'email' ? \App\Support\EcopiloteIdentity::emailSuffix() : null);
+    $subjects = [
+        'Mathématiques',
+        'Physique-Chimie',
+        'Français',
+        'Anglais',
+        'SVT',
+        'Histoire-Géographie',
+        'Informatique',
+        'Arabe',
+    ];
+    $fieldClass = 'w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100';
     $openRegister = $errors->any() && in_array(old('_form'), ['prof_register', 'etudiant_register'], true)
         && (($registerPanel === 'prof' && old('_form') === 'prof_register')
             || ($registerPanel === 'etudiant' && old('_form') === 'etudiant_register'));
@@ -20,7 +31,7 @@
     <div class="pointer-events-none absolute inset-0 opacity-30"
          style="background-image:radial-gradient(circle at 15% 20%, #3b82f6 0, transparent 35%), radial-gradient(circle at 85% 80%, #10b981 0, transparent 35%);"></div>
 
-    <div class="relative w-full max-w-md">
+    <div class="relative w-full max-w-2xl">
         <div class="overflow-hidden rounded-3xl border border-white/15 bg-white shadow-2xl">
 
             {{-- En-tête --}}
@@ -42,7 +53,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ $action }}" class="space-y-5" autocomplete="off">
+                    <form method="POST" action="{{ $action }}" class="grid gap-4 sm:grid-cols-2" autocomplete="off">
                     @csrf
 
                     <div>
@@ -99,7 +110,7 @@
                     </div>
 
                     <button type="submit"
-                            class="w-full rounded-xl bg-gradient-to-r from-blue-700 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-800 hover:to-emerald-700 hover:-translate-y-0.5">
+                            class="sm:col-span-2 w-full rounded-xl bg-gradient-to-r from-blue-700 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-800 hover:to-emerald-700 hover:-translate-y-0.5">
                         Se connecter
                     </button>
                 </form>
@@ -135,63 +146,73 @@
         <div id="profRegisterOverlay"
              class="{{ $openRegister && old('_form') === 'prof_register' ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
              onclick="if (event.target === this) closeProfRegister()">
-            <div class="relative w-full max-w-xs overflow-hidden rounded-2xl border border-white/15 bg-white shadow-2xl"
+            <div class="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto overflow-x-hidden rounded-2xl border border-white/15 bg-white shadow-2xl"
                  role="dialog" aria-modal="true" aria-labelledby="profRegisterTitle">
-                <div class="bg-gradient-to-r from-blue-700 via-blue-800 to-emerald-600 px-4 py-3">
+                <div class="sticky top-0 z-10 bg-gradient-to-r from-blue-700 via-blue-800 to-emerald-600 px-5 py-3">
                     <h2 id="profRegisterTitle" class="text-base font-extrabold text-white" style="font-family:'Poppins',sans-serif;">
                         S'inscrire
                     </h2>
                     <p class="mt-0.5 text-xs text-blue-100">Candidature professeur</p>
                 </div>
 
-                <form method="POST" action="{{ $registerAction }}" class="space-y-2.5 px-4 py-4">
+                <form method="POST" action="{{ $registerAction }}" class="grid gap-3 px-5 py-4 sm:grid-cols-2">
                     @csrf
                     <input type="hidden" name="_form" value="prof_register">
 
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Nom complet</label>
-                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required
-                               placeholder="Ex. Mme Alami"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required placeholder="Ex. Mme Alami" class="{{ $fieldClass }}">
                         @error('nom_complet') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Contact</label>
-                        <input type="text" name="contact" value="{{ old('contact') }}" required
-                               placeholder="Téléphone ou e-mail"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="contact" value="{{ old('contact') }}" required placeholder="Téléphone ou e-mail" class="{{ $fieldClass }}">
                         @error('contact') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Ville</label>
-                        <input type="text" name="ville" value="{{ old('ville') }}" required
-                               placeholder="Ex. Casablanca"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="ville" value="{{ old('ville') }}" required placeholder="Ex. Casablanca" class="{{ $fieldClass }}">
                         @error('ville') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Niveau</label>
+                        <select name="niveau" required class="{{ $fieldClass }}">
+                            <option value="">Sélectionner…</option>
+                            <option value="primaire" @selected(old('niveau') === 'primaire')>Primaire</option>
+                            <option value="college" @selected(old('niveau') === 'college')>Collège</option>
+                            <option value="lycee" @selected(old('niveau') === 'lycee')>Lycée</option>
+                            <option value="universitaire" @selected(old('niveau') === 'universitaire')>Universitaire</option>
+                        </select>
+                        @error('niveau') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Statut</label>
+                        <select name="statut" required class="{{ $fieldClass }}">
+                            <option value="">Sélectionner…</option>
+                            <option value="public" @selected(old('statut') === 'public')>Public</option>
+                            <option value="prive" @selected(old('statut') === 'prive')>Privé</option>
+                        </select>
+                        @error('statut') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Disponibilité</label>
+                        <select name="disponibilite" required class="{{ $fieldClass }}">
+                            <option value="">Sélectionner…</option>
+                            <option value="immediat" @selected(old('disponibilite') === 'immediat')>Immédiat</option>
+                            <option value="a_negocier" @selected(old('disponibilite') === 'a_negocier')>À négocier</option>
+                        </select>
+                        @error('disponibilite') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="sm:col-span-2">
                         <div class="mb-1 flex items-center justify-between">
                             <label class="text-xs font-semibold text-slate-700">Matières enseignées</label>
                             <span class="text-[10px] font-medium text-slate-400">Une ou plusieurs</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2">
-                            @foreach ([
-                                'Mathématiques',
-                                'Physique-Chimie',
-                                'Français',
-                                'Anglais',
-                                'SVT',
-                                'Histoire-Géographie',
-                                'Informatique',
-                                'Arabe',
-                            ] as $subject)
+                        <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:grid-cols-4">
+                            @foreach ($subjects as $subject)
                                 <label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200 transition hover:ring-blue-300">
-                                    <input type="checkbox"
-                                           name="matieres[]"
-                                           value="{{ $subject }}"
+                                    <input type="checkbox" name="matieres[]" value="{{ $subject }}"
                                            @checked(in_array($subject, old('matieres', []), true))
                                            class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                                     <span>{{ $subject }}</span>
@@ -202,48 +223,13 @@
                         @error('matieres.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Niveau</label>
-                        <select name="niveau" required
-                                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                            <option value="">Sélectionner…</option>
-                            <option value="primaire" @selected(old('niveau') === 'primaire')>Primaire</option>
-                            <option value="college" @selected(old('niveau') === 'college')>Collège</option>
-                            <option value="lycee" @selected(old('niveau') === 'lycee')>Lycée</option>
-                            <option value="universitaire" @selected(old('niveau') === 'universitaire')>Universitaire</option>
-                        </select>
-                        @error('niveau') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Statut</label>
-                        <select name="statut" required
-                                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                            <option value="">Sélectionner…</option>
-                            <option value="public" @selected(old('statut') === 'public')>Public</option>
-                            <option value="prive" @selected(old('statut') === 'prive')>Privé</option>
-                        </select>
-                        @error('statut') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Disponibilité</label>
-                        <select name="disponibilite" required
-                                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                            <option value="">Sélectionner…</option>
-                            <option value="immediat" @selected(old('disponibilite') === 'immediat')>Immédiat</option>
-                            <option value="a_negocier" @selected(old('disponibilite') === 'a_negocier')>À négocier</option>
-                        </select>
-                        @error('disponibilite') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="flex flex-col gap-2 pt-1">
+                    <div class="flex gap-2 pt-1 sm:col-span-2">
                         <button type="submit"
-                                class="w-full rounded-lg bg-gradient-to-r from-blue-700 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition hover:from-blue-800 hover:to-emerald-700">
+                                class="flex-1 rounded-lg bg-gradient-to-r from-blue-700 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition hover:from-blue-800 hover:to-emerald-700">
                             Envoyer
                         </button>
                         <button type="button" onclick="closeProfRegister()"
-                                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                                class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                             Fermer
                         </button>
                     </div>
@@ -277,71 +263,47 @@
         <div id="etudiantRegisterOverlay"
              class="{{ $openRegister && old('_form') === 'etudiant_register' ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
              onclick="if (event.target === this) closeEtudiantRegister()">
-            <div class="relative max-h-[90vh] w-full max-w-xs overflow-y-auto overflow-x-hidden rounded-2xl border border-white/15 bg-white shadow-2xl"
+            <div class="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto overflow-x-hidden rounded-2xl border border-white/15 bg-white shadow-2xl"
                  role="dialog" aria-modal="true" aria-labelledby="etudiantRegisterTitle">
-                <div class="sticky top-0 bg-gradient-to-r from-blue-700 via-blue-800 to-emerald-600 px-4 py-3">
+                <div class="sticky top-0 z-10 bg-gradient-to-r from-blue-700 via-blue-800 to-emerald-600 px-5 py-3">
                     <h2 id="etudiantRegisterTitle" class="text-base font-extrabold text-white" style="font-family:'Poppins',sans-serif;">
                         S'inscrire
                     </h2>
                     <p class="mt-0.5 text-xs text-blue-100">Inscription étudiant</p>
                 </div>
 
-                <form method="POST" action="{{ $registerAction }}" class="space-y-2.5 px-4 py-4">
+                <form method="POST" action="{{ $registerAction }}" enctype="multipart/form-data" class="grid gap-3 px-5 py-4 sm:grid-cols-2">
                     @csrf
                     <input type="hidden" name="_form" value="etudiant_register">
 
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Nom Complet</label>
-                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required
-                               placeholder="Ex. Yassine Bennani"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required placeholder="Ex. Yassine Bennani" class="{{ $fieldClass }}">
                         @error('nom_complet') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Contact</label>
-                        <input type="text" name="contact" value="{{ old('contact') }}" required
-                               placeholder="Téléphone ou e-mail"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="contact" value="{{ old('contact') }}" required placeholder="Téléphone ou e-mail" class="{{ $fieldClass }}">
                         @error('contact') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Contact Tuteur</label>
-                        <input type="text" name="contact_tuteur" value="{{ old('contact_tuteur') }}" required
-                               placeholder="Téléphone du tuteur"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="contact_tuteur" value="{{ old('contact_tuteur') }}" required placeholder="Téléphone du tuteur" class="{{ $fieldClass }}">
                         @error('contact_tuteur') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Ville</label>
-                        <input type="text" name="ville" value="{{ old('ville') }}" required
-                               placeholder="Ex. Casablanca"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="ville" value="{{ old('ville') }}" required placeholder="Ex. Casablanca" class="{{ $fieldClass }}">
                         @error('ville') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Niveau Scolaire</label>
-                        <input type="text" name="niveau_scolaire" value="{{ old('niveau_scolaire') }}" required
-                               placeholder="Ex. 2nde, 1ère, Terminale…"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <input type="text" name="niveau_scolaire" value="{{ old('niveau_scolaire') }}" required placeholder="Ex. 2nde, 1ère, Terminale…" class="{{ $fieldClass }}">
                         @error('niveau_scolaire') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Matière</label>
-                        <input type="text" name="matiere" value="{{ old('matiere') }}" required
-                               placeholder="Ex. Mathématiques"
-                               class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                        @error('matiere') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-700">Type Cours</label>
-                        <select name="type_cours" required
-                                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                        <select name="type_cours" required class="{{ $fieldClass }}">
                             <option value="">Sélectionner…</option>
                             <option value="individuel" @selected(old('type_cours') === 'individuel')>Individuel</option>
                             <option value="en_groupe" @selected(old('type_cours') === 'en_groupe')>En Groupe</option>
@@ -349,13 +311,48 @@
                         @error('type_cours') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="flex flex-col gap-2 pt-1">
+                    <div class="sm:col-span-2">
+                        <div class="mb-1 flex items-center justify-between">
+                            <label class="text-xs font-semibold text-slate-700">Matières</label>
+                            <span class="text-[10px] font-medium text-slate-400">Une ou plusieurs</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:grid-cols-4">
+                            @foreach ($subjects as $subject)
+                                <label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200 transition hover:ring-blue-300">
+                                    <input type="checkbox" name="matieres[]" value="{{ $subject }}"
+                                           @checked(in_array($subject, old('matieres', []), true))
+                                           class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                    <span>{{ $subject }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('matieres') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('matieres.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Photo</label>
+                        <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5">
+                            <span id="etudiantPhotoPreviewWrap" class="hidden h-9 w-9 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white">
+                                <img id="etudiantPhotoPreview" alt="Aperçu" class="h-full w-full object-cover">
+                            </span>
+                            <p id="etudiantPhotoName" class="min-w-0 flex-1 truncate text-[11px] text-slate-500">Aucun fichier choisi</p>
+                            <input id="etudiantPhotoFile" type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,image/*" class="sr-only">
+                            <button type="button" id="etudiantPhotoBrowse"
+                                    class="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700">
+                                Importer
+                            </button>
+                        </div>
+                        @error('photo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex gap-2 pt-1 sm:col-span-2">
                         <button type="submit"
-                                class="w-full rounded-lg bg-gradient-to-r from-blue-700 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition hover:from-blue-800 hover:to-emerald-700">
+                                class="flex-1 rounded-lg bg-gradient-to-r from-blue-700 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition hover:from-blue-800 hover:to-emerald-700">
                             Envoyer
                         </button>
                         <button type="button" onclick="closeEtudiantRegister()"
-                                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                                class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                             Fermer
                         </button>
                     </div>
@@ -376,6 +373,27 @@
                 el.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
             }
+            (function () {
+                const input = document.getElementById('etudiantPhotoFile');
+                const browse = document.getElementById('etudiantPhotoBrowse');
+                const name = document.getElementById('etudiantPhotoName');
+                const preview = document.getElementById('etudiantPhotoPreview');
+                const wrap = document.getElementById('etudiantPhotoPreviewWrap');
+                if (!input || !browse) return;
+                browse.addEventListener('click', () => input.click());
+                input.addEventListener('change', () => {
+                    const file = input.files && input.files[0];
+                    if (!file) {
+                        name.textContent = 'Aucun fichier choisi';
+                        wrap.classList.add('hidden');
+                        preview.removeAttribute('src');
+                        return;
+                    }
+                    name.textContent = file.name;
+                    wrap.classList.remove('hidden');
+                    preview.src = URL.createObjectURL(file);
+                });
+            })();
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeEtudiantRegister();
             });

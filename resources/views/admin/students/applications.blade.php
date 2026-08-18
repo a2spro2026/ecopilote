@@ -36,9 +36,14 @@
                     ? 'border-slate-200 bg-slate-100 opacity-60 grayscale dark:border-slate-700 dark:bg-slate-800/70'
                     : 'border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900' }}">
                 <div class="flex items-start justify-between gap-2">
-                    <div>
+                    <div class="flex min-w-0 items-center gap-3">
+                        @if ($d->photo_url)
+                            <img src="{{ $d->photo_url }}" alt="Photo de {{ $d->nom_complet }}" class="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700">
+                        @endif
+                        <div class="min-w-0">
                         <p class="text-xs font-medium text-slate-500">Demande #{{ $d->id }}</p>
-                        <h3 class="mt-0.5 text-base font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $d->nom_complet }}</h3>
+                        <h3 class="mt-0.5 truncate text-base font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $d->nom_complet }}</h3>
+                        </div>
                     </div>
                     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset {{ $meta['chip'] }}">
                         <span class="h-1.5 w-1.5 rounded-full {{ $meta['dot'] }}"></span>
