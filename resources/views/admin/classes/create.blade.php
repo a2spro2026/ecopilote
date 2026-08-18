@@ -71,8 +71,8 @@
                     <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Niveau scolaire</label>
                     <select name="niveau" id="fieldNiveau" required class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800">
                         <option value="">Sélectionner…</option>
-                        @foreach ($niveaux as $n)
-                            <option value="{{ $n }}" @selected(old('niveau') === $n)>{{ $n }}</option>
+                        @foreach ($niveaux as $key => $n)
+                            <option value="{{ $key }}" @selected(old('niveau') === $key)>{{ $n }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -98,6 +98,25 @@
             </div>
         </section>
 
+        {{-- Élèves --}}
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div class="mb-3 flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500 text-white">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m-7.5 2.72a3 3 0 0 1-4.682 2.72 9.094 9.094 0 0 1 3.741.479"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Élèves</h2>
+                    <p class="text-[11px] text-slate-500" id="studentsHint">Choisissez une matière et un niveau</p>
+                </div>
+            </div>
+
+            <input type="search" id="studentSearch" autocomplete="off"
+                   class="mb-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:border-slate-700 dark:bg-slate-800"
+                   placeholder="Rechercher un élève…">
+            <div id="studentResults" class="mb-2 max-h-56 space-y-1.5 overflow-y-auto"></div>
+            <div id="selectedStudents" class="grid gap-2 sm:grid-cols-2"></div>
+        </section>
+
         {{-- Professeur --}}
         <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div class="mb-3 flex items-center gap-2.5">
@@ -106,7 +125,7 @@
                 </span>
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Professeur</h2>
-                    <p class="text-[11px] text-slate-500">Professeurs validés uniquement</p>
+                    <p class="text-[11px] text-slate-500" id="teacherHint">Choisissez une matière</p>
                 </div>
             </div>
 
@@ -116,27 +135,8 @@
                    placeholder="Nom, matière…">
             <input type="hidden" name="professeur_id" id="fieldProfesseurId" value="{{ old('professeur_id') }}">
 
-            <div id="teacherResults" class="mb-2 max-h-36 space-y-1.5 overflow-y-auto"></div>
+            <div id="teacherResults" class="mb-2 max-h-56 space-y-1.5 overflow-y-auto"></div>
             <div id="teacherCard" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-500/30 dark:bg-emerald-500/10"></div>
-        </section>
-
-        {{-- Élèves --}}
-        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="mb-3 flex items-center gap-2.5">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500 text-white">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m-7.5 2.72a3 3 0 0 1-4.682 2.72 9.094 9.094 0 0 1 3.741.479"/></svg>
-                </span>
-                <div>
-                    <h2 class="text-sm font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Élèves</h2>
-                    <p class="text-[11px] text-slate-500" id="studentsHint">Sélectionnez un élève</p>
-                </div>
-            </div>
-
-            <input type="search" id="studentSearch" autocomplete="off"
-                   class="mb-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:border-slate-700 dark:bg-slate-800"
-                   placeholder="Rechercher un élève…">
-            <div id="studentResults" class="mb-2 max-h-36 space-y-1.5 overflow-y-auto"></div>
-            <div id="selectedStudents" class="grid gap-2 sm:grid-cols-2"></div>
         </section>
 
         {{-- Planning --}}
@@ -262,9 +262,11 @@
     const teachers = @json($teachersJson);
     const students = @json($studentsJson);
     const classNumber = @json($classNumber);
+    const levelLabels = @json($niveaux);
+    const oldStudentIds = @json(array_map('intval', old('eleves', [])));
 
     let selectedTeacher = teachers.find(t => String(t.id) === String(document.getElementById('fieldProfesseurId').value)) || null;
-    let selectedStudents = [];
+    let selectedStudents = students.filter(s => oldStudentIds.includes(Number(s.id)));
 
     const els = {
         matiere: document.getElementById('fieldMatiere'),
@@ -278,6 +280,7 @@
         studentResults: document.getElementById('studentResults'),
         selectedStudents: document.getElementById('selectedStudents'),
         studentsHint: document.getElementById('studentsHint'),
+        teacherHint: document.getElementById('teacherHint'),
         heureDebut: document.getElementById('fieldHeureDebut'),
         heureFin: document.getElementById('fieldHeureFin'),
         dateDebut: document.getElementById('fieldDateDebut'),
@@ -303,20 +306,53 @@
         node.className = isEmpty ? empty : filled;
     }
 
+    function hasSubject(list, subject) {
+        if (!subject) return false;
+        const wanted = String(subject).trim().toLowerCase();
+        return (list || []).some((item) => String(item).trim().toLowerCase() === wanted);
+    }
+
+    function studentLevelKey(student) {
+        if (student.niveau_key) return student.niveau_key;
+        const text = String(student.niveau || '').toLowerCase();
+        if (text.includes('coran')) return 'coran';
+        if (text.includes('prim') || /\bcp\b|\bce1\b|\bce2\b|\bcm1\b|\bcm2\b/.test(text)) return 'primaire';
+        if (text.includes('lyc') || text.includes('2nde') || text.includes('1ère') || text.includes('1ere') || text.includes('terminale')) return 'lycee';
+        if (text.includes('coll') || text.includes('6ème') || text.includes('6eme') || text.includes('5ème') || text.includes('5eme') || text.includes('4ème') || text.includes('4eme') || text.includes('3ème') || text.includes('3eme') || text.includes('3e ')) return 'college';
+        return null;
+    }
+
+    function studentMatchesFilters(student, matiere, niveau) {
+        if (!matiere || !niveau) return false;
+        if (studentLevelKey(student) !== niveau) return false;
+        return hasSubject(student.matieres, matiere);
+    }
+
     function compatibleTeachers() {
         const matiere = els.matiere.value;
-        const niveau = els.niveau.value;
         const q = els.teacherSearch.value.trim().toLowerCase();
+        if (!matiere) return [];
         return teachers.filter(t => {
             if (t.statut !== 'validé') return false;
-            if (matiere && !t.matieres.includes(matiere)) return false;
-            if (niveau && !t.niveaux.includes(niveau)) return false;
+            if (!hasSubject(t.matieres, matiere)) return false;
             if (!q) return true;
             return t.nom.toLowerCase().includes(q) || t.matieres.join(' ').toLowerCase().includes(q);
         });
     }
 
     function renderTeachers() {
+        const matiere = els.matiere.value;
+        if (els.teacherHint) {
+            els.teacherHint.textContent = matiere
+                ? 'Tous les professeurs de cette matière'
+                : 'Choisissez une matière';
+        }
+
+        if (!matiere) {
+            els.teacherResults.innerHTML = `<p class="text-xs text-slate-500">Sélectionnez une matière pour afficher les professeurs.</p>`;
+            return;
+        }
+
         const list = compatibleTeachers();
         els.teacherResults.innerHTML = list.length ? list.map(t => `
             <button type="button" data-id="${t.id}" class="teacher-pick flex w-full items-center justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-700 dark:hover:bg-emerald-500/10">
@@ -326,7 +362,7 @@
                 </span>
                 <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Validé</span>
             </button>
-        `).join('') : `<p class="text-xs text-slate-500">Aucun professeur validé compatible.</p>`;
+        `).join('') : `<p class="text-xs text-slate-500">Aucun professeur validé pour cette matière.</p>`;
 
         els.teacherResults.querySelectorAll('.teacher-pick').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -364,23 +400,34 @@
     }
 
     function renderStudentResults() {
+        const matiere = els.matiere.value;
+        const niveau = els.niveau.value;
         const q = els.studentSearch.value.trim().toLowerCase();
         const selectedIds = selectedStudents.map(s => s.id);
+
+        if (!matiere || !niveau) {
+            els.studentResults.innerHTML = `<p class="text-xs text-slate-500">Sélectionnez une matière et un niveau pour afficher les élèves.</p>`;
+            return;
+        }
+
         const list = students.filter(s => {
             if (selectedIds.includes(s.id)) return false;
+            if (!studentMatchesFilters(s, matiere, niveau)) return false;
             if (!q) return true;
-            return s.nom.toLowerCase().includes(q) || s.niveau.toLowerCase().includes(q);
-        }).slice(0, 8);
+            return s.nom.toLowerCase().includes(q)
+                || String(s.niveau).toLowerCase().includes(q)
+                || (s.matieres || []).join(' ').toLowerCase().includes(q);
+        });
 
-        els.studentResults.innerHTML = list.map(s => `
+        els.studentResults.innerHTML = list.length ? list.map(s => `
             <button type="button" data-id="${s.id}" class="student-pick flex w-full items-center justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm hover:border-violet-400 hover:bg-violet-50 dark:border-slate-700 dark:hover:bg-violet-500/10">
                 <span>
                     <span class="block font-semibold text-slate-800 dark:text-slate-100">${s.nom}</span>
-                    <span class="block text-xs text-slate-500">${s.niveau}</span>
+                    <span class="block text-xs text-slate-500">${s.niveau}${(s.matieres || []).length ? ' · ' + s.matieres.join(', ') : ''}</span>
                 </span>
                 <span class="text-xs font-semibold text-violet-600">Ajouter</span>
             </button>
-        `).join('') || `<p class="text-xs text-slate-500">Aucun élève trouvé.</p>`;
+        `).join('') : `<p class="text-xs text-slate-500">Aucun élève pour cette matière et ce niveau.</p>`;
 
         els.studentResults.querySelectorAll('.student-pick').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -400,9 +447,13 @@
 
     function renderSelectedStudents() {
         syncElevesHidden();
-        els.studentsHint.textContent = classType() === 'individuelle'
-            ? 'Sélectionnez un seul élève'
-            : 'Sélectionnez un ou plusieurs élèves';
+        if (!els.matiere.value || !els.niveau.value) {
+            els.studentsHint.textContent = 'Choisissez une matière et un niveau';
+        } else {
+            els.studentsHint.textContent = classType() === 'individuelle'
+                ? 'Élèves du niveau et de la matière choisis — 1 élève'
+                : 'Élèves du niveau et de la matière choisis';
+        }
 
         els.selectedStudents.innerHTML = selectedStudents.length ? selectedStudents.map(s => `
             <div class="rounded-2xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-500/30 dark:bg-violet-500/10">
@@ -437,12 +488,13 @@
 
         const matiere = els.matiere.value;
         const niveau = els.niveau.value;
+        const niveauLabel = niveau ? (levelLabels[niveau] || niveau) : '';
         const typeLabel = classType() === 'individuelle' ? 'Individuelle' : 'Groupe';
         const days = [...document.querySelectorAll('.day-check:checked')].map(c => c.value);
         const hasSchedule = Boolean(els.heureDebut.value && els.heureFin.value);
 
         setText('sumMatiere', matiere || 'Non renseignée', !matiere);
-        setText('sumNiveau', niveau || 'Non renseigné', !niveau);
+        setText('sumNiveau', niveauLabel || 'Non renseigné', !niveau);
         setText('sumType', typeLabel, false);
         setText('sumProf', selectedTeacher?.nom || 'Non sélectionné', !selectedTeacher);
 
@@ -495,16 +547,16 @@
             showError('Sélectionnez un professeur validé.');
             return false;
         }
-        if (els.matiere.value && !selectedTeacher.matieres.includes(els.matiere.value)) {
-            showError('La matière est incompatible avec ce professeur.');
-            return false;
-        }
-        if (els.niveau.value && !selectedTeacher.niveaux.includes(els.niveau.value)) {
-            showError('Le niveau est incompatible avec ce professeur.');
+        if (els.matiere.value && !hasSubject(selectedTeacher.matieres, els.matiere.value)) {
+            showError('Ce professeur n’enseigne pas la matière sélectionnée.');
             return false;
         }
         if (!selectedStudents.length) {
             showError('Ajoutez au moins un élève.');
+            return false;
+        }
+        if (!selectedStudents.every(s => studentMatchesFilters(s, els.matiere.value, els.niveau.value))) {
+            showError('Chaque élève doit correspondre à la matière et au niveau sélectionnés.');
             return false;
         }
         if (classType() === 'individuelle' && selectedStudents.length > 1) {
@@ -550,18 +602,25 @@
         });
     });
 
+    function syncFilters() {
+        const matiere = els.matiere.value;
+        const niveau = els.niveau.value;
+
+        selectedStudents = selectedStudents.filter(s => studentMatchesFilters(s, matiere, niveau));
+        if (selectedTeacher && matiere && !hasSubject(selectedTeacher.matieres, matiere)) {
+            selectedTeacher = null;
+            els.profId.value = '';
+            renderTeacherCard();
+        }
+
+        renderSelectedStudents();
+        renderStudentResults();
+        renderTeachers();
+    }
+
     els.form.addEventListener('input', (e) => {
         if (['fieldMatiere', 'fieldNiveau'].includes(e.target.id)) {
-            if (selectedTeacher) {
-                const okM = !els.matiere.value || selectedTeacher.matieres.includes(els.matiere.value);
-                const okN = !els.niveau.value || selectedTeacher.niveaux.includes(els.niveau.value);
-                if (!okM || !okN) {
-                    selectedTeacher = null;
-                    els.profId.value = '';
-                    renderTeacherCard();
-                }
-            }
-            renderTeachers();
+            syncFilters();
         }
         updateSummary();
     });
@@ -569,16 +628,7 @@
     els.form.addEventListener('change', (e) => {
         if (e.target.classList.contains('day-check') || ['fieldMatiere', 'fieldNiveau', 'fieldStatut', 'fieldHeureDebut', 'fieldHeureFin', 'fieldDateDebut', 'fieldDateFin'].includes(e.target.id)) {
             if (['fieldMatiere', 'fieldNiveau'].includes(e.target.id)) {
-                if (selectedTeacher) {
-                    const okM = !els.matiere.value || selectedTeacher.matieres.includes(els.matiere.value);
-                    const okN = !els.niveau.value || selectedTeacher.niveaux.includes(els.niveau.value);
-                    if (!okM || !okN) {
-                        selectedTeacher = null;
-                        els.profId.value = '';
-                        renderTeacherCard();
-                    }
-                }
-                renderTeachers();
+                syncFilters();
             }
             updateSummary();
         }

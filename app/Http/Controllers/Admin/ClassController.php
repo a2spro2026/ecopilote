@@ -40,8 +40,8 @@ class ClassController extends Controller
 
         return view('admin.classes.create', [
             'classNumber' => 'CL-0001',
-            'matieres' => ['Mathématiques', 'Physique-Chimie', 'Français', 'Anglais', 'SVT', 'Histoire-Géo'],
-            'niveaux' => ['6ème', '5ème', '4ème', '3ème', '2nde', '1ère', 'Terminale'],
+            'matieres' => $this->subjects(),
+            'niveaux' => $this->levels(),
             'jours' => ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
             'professeurs' => array_values(array_filter(
                 $this->validatedTeachers(),
@@ -57,8 +57,8 @@ class ClassController extends Controller
 
         $data = $request->validate([
             'numero' => ['required', 'string'],
-            'matiere' => ['required', 'string'],
-            'niveau' => ['required', 'string'],
+            'matiere' => ['required', 'string', 'in:'.implode(',', $this->subjects())],
+            'niveau' => ['required', 'string', 'in:'.implode(',', array_keys($this->levels()))],
             'type' => ['required', 'in:individuelle,groupe'],
             'statut' => ['required', 'in:active,suspendue'],
             'professeur_id' => ['required', 'integer'],
@@ -84,13 +84,7 @@ class ClassController extends Controller
 
         if (! in_array($data['matiere'], $teacher['matieres'], true)) {
             throw ValidationException::withMessages([
-                'matiere' => 'La matière sélectionnée est incompatible avec ce professeur.',
-            ]);
-        }
-
-        if (! in_array($data['niveau'], $teacher['niveaux'], true)) {
-            throw ValidationException::withMessages([
-                'niveau' => 'Le niveau sélectionné est incompatible avec ce professeur.',
+                'matiere' => 'Ce professeur n’enseigne pas la matière sélectionnée.',
             ]);
         }
 
@@ -98,6 +92,19 @@ class ClassController extends Controller
             throw ValidationException::withMessages([
                 'eleves' => 'Une classe individuelle ne peut contenir qu’un seul élève.',
             ]);
+        }
+
+        $allowedStudentIds = collect($this->students())
+            ->filter(fn (array $student) => $this->studentMatchesFilters($student, $data['matiere'], $data['niveau']))
+            ->pluck('id')
+            ->all();
+
+        foreach ($data['eleves'] as $eleveId) {
+            if (! in_array((int) $eleveId, $allowedStudentIds, true)) {
+                throw ValidationException::withMessages([
+                    'eleves' => 'Chaque élève doit correspondre à la matière et au niveau sélectionnés.',
+                ]);
+            }
         }
 
         if (strtotime($data['heure_fin']) <= strtotime($data['heure_debut'])) {
@@ -175,7 +182,71 @@ class ClassController extends Controller
                 'id' => $student->id,
                 'nom' => $student->nom_complet,
                 'niveau' => $student->niveau_scolaire,
+                'niveau_key' => $this->levelKeyFromText((string) $student->niveau_scolaire),
+                'matieres' => array_values(array_filter(array_map('trim', explode(',', (string) $student->matiere)))),
             ])
             ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function subjects(): array
+    {
+        return [
+            'Mathématiques',
+            'Physique-Chimie',
+            'Français',
+            'Anglais',
+            'SVT',
+            'Histoire-Géographie',
+            'Informatique',
+            'Arabe',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function levels(): array
+    {
+        return [
+            'primaire' => 'Primaire',
+            'college' => 'Collège',
+            'lycee' => 'Lycée',
+            'coran' => 'Coran',
+        ];
+    }
+
+    private function levelKeyFromText(string $value): ?string
+    {
+        $text = mb_strtolower($value);
+
+        if (str_contains($text, 'coran')) {
+            return 'coran';
+        }
+        if (str_contains($text, 'prim') || str_contains($text, 'cp') || str_contains($text, 'ce1') || str_contains($text, 'ce2') || str_contains($text, 'cm1') || str_contains($text, 'cm2')) {
+            return 'primaire';
+        }
+        if (str_contains($text, 'lyc') || str_contains($text, '2nde') || str_contains($text, '1ère') || str_contains($text, '1ere') || str_contains($text, 'terminale')) {
+            return 'lycee';
+        }
+        if (str_contains($text, 'coll') || str_contains($text, '6ème') || str_contains($text, '6eme') || str_contains($text, '5ème') || str_contains($text, '5eme') || str_contains($text, '4ème') || str_contains($text, '4eme') || str_contains($text, '3ème') || str_contains($text, '3eme') || str_contains($text, '3e ')) {
+            return 'college';
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array{niveau_key:?string, matieres:list<string>}  $student
+     */
+    private function studentMatchesFilters(array $student, string $matiere, string $niveau): bool
+    {
+        if (($student['niveau_key'] ?? null) !== $niveau) {
+            return false;
+        }
+
+        return in_array($matiere, $student['matieres'] ?? [], true);
     }
 }
