@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Student;
+use App\Support\WorkspaceSession;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,8 @@ class EnsureStudentAuthenticated
      */
     public function handle(Request $request, Closure $next): Response
     {
+        WorkspaceSession::enterStudent($request);
+
         $studentId = $request->session()->get('student_id');
         $student = $studentId ? Student::query()->find($studentId) : null;
 

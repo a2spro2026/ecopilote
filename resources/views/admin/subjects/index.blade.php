@@ -16,45 +16,72 @@
         'green' => 'from-emerald-400 to-green-600',
         'rose' => 'from-rose-500 to-pink-600',
     ];
+
+    $formatMad = fn (int $amount) => number_format($amount, 0, ',', ' ').' MAD';
 @endphp
 
-<div class="mb-5">
-    <h2 class="text-lg font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Vue des matières</h2>
-    <p class="text-sm text-slate-500">Effectifs, revenus mensuels et évolution</p>
-</div>
+<div class="w-full min-h-[calc(100vh-10rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
+        <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Tableau des matières</h2>
+            <p class="text-sm text-slate-500">{{ count($matieres) }} matière(s) · effectifs, heures et finances</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('admin.subjects.print') }}" target="_blank"
+               class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829h10.56M6.72 17.443h10.56M6.72 21h10.56A1.72 1.72 0 0 0 19 19.28V9.5H5v9.78A1.72 1.72 0 0 0 6.72 21ZM7 5V3h10v2m2 0H5a3 3 0 0 0-3 3v5h3V9.5h14V13h3V8a3 3 0 0 0-3-3Z"/>
+                </svg>
+                Imprimer
+            </a>
+            <a href="{{ route('admin.dashboard') }}" data-window-close
+               class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                Fermer
+            </a>
+        </div>
+    </div>
 
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-    @foreach ($matieres as $m)
-        <article class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $m['nom'] }}</h3>
-                    <p class="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">Matière</p>
-                </div>
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br {{ $toneBg[$m['tone']] ?? $toneBg['blue'] }} text-white shadow">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
-                    </svg>
-                </span>
-            </div>
-
-            <dl class="mt-5 space-y-3">
-                <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-800/60">
-                    <dt class="text-xs font-medium text-slate-500">Effectif</dt>
-                    <dd class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $m['effectif'] }}</dd>
-                </div>
-                <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-800/60">
-                    <dt class="text-xs font-medium text-slate-500">Revenus / mois</dt>
-                    <dd class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $m['revenus'] }}</dd>
-                </div>
-                <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-800/60">
-                    <dt class="text-xs font-medium text-slate-500">Évolution</dt>
-                    <dd class="text-sm font-extrabold {{ $m['up'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
-                        {{ $m['evolution'] }}
-                    </dd>
-                </div>
-            </dl>
-        </article>
-    @endforeach
+    <div class="w-full overflow-x-auto">
+        <table class="ep-table min-w-[1180px] w-full table-fixed text-sm">
+            <colgroup>
+                <col class="w-[22%]">
+                <col class="w-[10%]">
+                <col class="w-[11%]">
+                <col class="w-[11%]">
+                <col class="w-[13%]">
+                <col class="w-[13%]">
+                <col class="w-[13%]">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Matière</th>
+                    <th>Nbrs Profs</th>
+                    <th>Nbrs Étudiant</th>
+                    <th>Nbrs H/mois</th>
+                    <th>Revenue</th>
+                    <th>Paiement</th>
+                    <th>Bénéfice</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach ($matieres as $m)
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                        <td>
+                            <div class="flex items-center gap-3">
+                                @include('admin.subjects.icon', ['m' => $m, 'toneBg' => $toneBg])
+                                <span class="truncate font-semibold text-slate-800 dark:text-slate-100" title="{{ $m['nom'] }}">{{ $m['nom'] }}</span>
+                            </div>
+                        </td>
+                        <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $m['profs'] }}</td>
+                        <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $m['etudiants'] }}</td>
+                        <td class="font-semibold text-blue-700 dark:text-blue-300">{{ number_format($m['heures_mois'], 0, ',', ' ') }} h</td>
+                        <td class="font-semibold text-emerald-700 dark:text-emerald-300">{{ $formatMad($m['revenue']) }}</td>
+                        <td class="font-semibold text-amber-700 dark:text-amber-300">{{ $formatMad($m['paiement']) }}</td>
+                        <td class="font-extrabold text-violet-700 dark:text-violet-300">{{ $formatMad($m['benefice']) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Models\TeacherApplication;
 use App\Support\EcopiloteIdentity;
+use App\Support\WorkspaceSession;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -46,10 +47,10 @@ class AuthController extends Controller
 
         if (! $teacher || ! hash_equals((string) $teacher->access_password, (string) $credentials['password'])) {
             return back()
-                ->withInput($request->only('login'))
                 ->withErrors(['login' => 'Identifiant ou mot de passe incorrect.']);
         }
 
+        WorkspaceSession::enterTeacher($request);
         $request->session()->regenerate();
         $request->session()->put('teacher_id', $teacher->id);
 
@@ -97,6 +98,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        WorkspaceSession::forgetAdmin($request);
         $request->session()->forget('teacher_id');
         $request->session()->regenerateToken();
 

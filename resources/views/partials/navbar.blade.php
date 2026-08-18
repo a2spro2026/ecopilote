@@ -38,7 +38,7 @@
                     </svg>
                 </span>
                 <span class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white to-emerald-300 bg-clip-text text-transparent" style="font-family:'Poppins',sans-serif;">
-                    ECOPILOTE
+                    {{ config('app.brand') }}
                 </span>
             </a>
 

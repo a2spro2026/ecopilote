@@ -12,5 +12,5 @@
         </article>
     @endforeach
 </section>
-<div class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">Les ressources sont conservées par ECOPILOTE. Vous pouvez les consulter et les télécharger, sans les supprimer ni les archiver.</div>
+<div class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">Les ressources sont conservées par {{ config('app.brand') }}. Vous pouvez les consulter et les télécharger, sans les supprimer ni les archiver.</div>
 @endsection

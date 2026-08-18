@@ -3,7 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Administration · ECOPILOTE</title>
+    <title>Administration · {{ config('app.brand') }}</title>
+    <script>
+        if (window.self !== window.top) {
+            window.parent.postMessage({ type: 'ecopilote:window-close', origin: window.location.origin }, window.location.origin);
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,7 +27,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0112 21.5a12.083 12.083 0 01-6.16-10.922L12 14z" />
                         </svg>
                     </span>
-                    <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-emerald-300 bg-clip-text text-transparent" style="font-family:'Poppins',sans-serif;">ECOPILOTE</span>
+                    <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-emerald-300 bg-clip-text text-transparent" style="font-family:'Poppins',sans-serif;">{{ config('app.brand') }}</span>
                 </a>
             </div>
 
@@ -44,7 +49,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.login.attempt') }}" class="space-y-5">
+                    <form method="POST" action="{{ route('admin.login.attempt') }}" class="space-y-5" autocomplete="off">
                         @csrf
                         <div>
                             <label class="mb-1.5 block text-sm font-semibold text-slate-700">E-mail</label>
@@ -54,9 +59,9 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                     </svg>
                                 </span>
-                                <input type="text" name="email" value="{{ \App\Support\EcopiloteIdentity::localPart(old('email', 'zerragui@ecopilote.ma')) }}" required autofocus
-                                       autocomplete="username"
-                                       placeholder="zerragui"
+                                <input type="text" name="email" value="" required autofocus
+                                       autocomplete="off" autocapitalize="off" spellcheck="false"
+                                       placeholder="votre.identifiant"
                                        class="min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-3 text-sm outline-none">
                                 <span class="flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-3 text-sm font-semibold text-slate-600">
                                     @ecopilote.ma
@@ -73,9 +78,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                                     </svg>
                                 </span>
-                                <input id="adminPassword" type="password" name="password" value="{{ old('password', '0661755048') }}" required
+                                <input id="adminPassword" type="password" name="password" value="" required
+                                       autocomplete="new-password"
                                        placeholder="••••••••"
-                                       class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-11 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
+                                       class="ep-keep-case w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-11 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
                                 <button type="button" onclick="const p=document.getElementById('adminPassword');p.type=p.type==='password'?'text':'password';"
                                         class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-blue-600" aria-label="Afficher">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -85,11 +91,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        <label class="flex items-center gap-2 text-sm text-slate-600">
-                            <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                            Se souvenir de moi
-                        </label>
 
                         <button type="submit"
                                 class="w-full rounded-xl bg-gradient-to-r from-blue-700 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-800 hover:to-emerald-700 hover:-translate-y-0.5">

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Salle de classe · ECOPILOTE</title>
+    <title>Salle de classe · {{ config('app.brand') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -11,7 +11,7 @@
 <body class="min-h-screen bg-slate-950 text-white antialiased">
 <header class="flex min-h-16 flex-wrap items-center gap-3 border-b border-white/10 bg-slate-900 px-4 py-3">
     <a href="{{ route('student.dashboard') }}" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200">← Mon espace</a>
-    <div class="min-w-0 flex-1"><h1 class="truncate text-sm font-bold sm:text-base" style="font-family:Poppins,sans-serif">Mathématiques · Équations du premier degré</h1><p class="text-[11px] text-slate-400">Mme Nadia El Amrani · Salle en direct</p></div>
+    <div class="min-w-0 flex-1"><h1 class="truncate text-sm font-bold sm:text-base" style="font-family:Poppins,sans-serif">Salle de classe</h1><p class="text-[11px] text-slate-400">{{ $student->nom_complet }} · En attente de séance</p></div>
     <div class="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2 text-xs font-bold text-slate-300" title="L’enregistrement est automatique"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span><span class="hidden sm:inline">Enregistrement automatique</span></div>
     <div class="inline-flex items-center gap-2 rounded-xl bg-emerald-600/80 px-3 py-2 text-xs font-bold"><span class="h-2 w-2 animate-pulse rounded-full bg-emerald-200"></span><span id="roomChrono" class="font-mono tabular-nums">00:00</span></div>
 </header>

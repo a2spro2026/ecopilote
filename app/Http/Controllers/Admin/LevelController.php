@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 
 class LevelController extends Controller
@@ -11,67 +13,77 @@ class LevelController extends Controller
     {
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
-        return view('admin.levels.index', [
-            'niveaux' => $this->demoLevels(),
-        ]);
+        $niveaux = $this->levelRows();
+
+        return view('admin.levels.index', compact('niveaux'));
+    }
+
+    public function print(Request $request)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $niveaux = $this->levelRows();
+
+        return view('admin.levels.print', compact('niveaux'));
     }
 
     /**
-     * Données de démonstration — à remplacer par les agrégats métier.
-     *
-     * @return list<array{nom: string, effectif: int, revenus: string, evolution: string, up: bool, tone: string}>
+     * @return list<array{nom: string, key: string, tone: string, etudiants: int, profs: int}>
      */
-    private function demoLevels(): array
+    private function levelRows(): array
+    {
+        $rows = [];
+
+        foreach ($this->levelCatalog() as $level) {
+            $rows[] = array_merge($level, [
+                'etudiants' => $this->countStudents($level['patterns']),
+                'profs' => $this->countTeachers($level['patterns']),
+            ]);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return list<array{nom: string, key: string, tone: string, patterns: list<string>}>
+     */
+    private function levelCatalog(): array
     {
         return [
-            [
-                'nom' => 'Primaire',
-                'effectif' => 48,
-                'revenus' => '14 200.00',
-                'evolution' => '+5,1 %',
-                'up' => true,
-                'tone' => 'blue',
-            ],
-            [
-                'nom' => 'Collège',
-                'effectif' => 61,
-                'revenus' => '19 800.00',
-                'evolution' => '+6,8 %',
-                'up' => true,
-                'tone' => 'emerald',
-            ],
-            [
-                'nom' => 'Lycée',
-                'effectif' => 54,
-                'revenus' => '21 350.00',
-                'evolution' => '+4,3 %',
-                'up' => true,
-                'tone' => 'indigo',
-            ],
-            [
-                'nom' => 'Université',
-                'effectif' => 27,
-                'revenus' => '10 900.00',
-                'evolution' => '+2,2 %',
-                'up' => true,
-                'tone' => 'violet',
-            ],
-            [
-                'nom' => 'Fonctionnaire',
-                'effectif' => 18,
-                'revenus' => '7 450.00',
-                'evolution' => '-0,8 %',
-                'up' => false,
-                'tone' => 'amber',
-            ],
-            [
-                'nom' => 'Divers',
-                'effectif' => 12,
-                'revenus' => '3 780.00',
-                'evolution' => '+1,5 %',
-                'up' => true,
-                'tone' => 'teal',
-            ],
+            ['nom' => 'Primaire', 'key' => 'primaire', 'tone' => 'emerald', 'patterns' => ['primaire']],
+            ['nom' => 'Collège', 'key' => 'college', 'tone' => 'blue', 'patterns' => ['college', 'collège']],
+            ['nom' => 'Lycée', 'key' => 'lycee', 'tone' => 'violet', 'patterns' => ['lycee', 'lycée']],
+            ['nom' => 'Coran', 'key' => 'coran', 'tone' => 'amber', 'patterns' => ['coran', 'coranique']],
         ];
+    }
+
+    /**
+     * @param  list<string>  $patterns
+     */
+    private function countStudents(array $patterns): int
+    {
+        return Student::query()
+            ->where('etat', Student::ETAT_ACTIF)
+            ->where(function ($query) use ($patterns) {
+                foreach ($patterns as $pattern) {
+                    $query->orWhere('niveau_scolaire', 'like', '%'.$pattern.'%');
+                }
+            })
+            ->count();
+    }
+
+    /**
+     * @param  list<string>  $patterns
+     */
+    private function countTeachers(array $patterns): int
+    {
+        return Teacher::query()
+            ->where('etat', Teacher::ETAT_ACTIF)
+            ->where(function ($query) use ($patterns) {
+                foreach ($patterns as $pattern) {
+                    $query->orWhere('niveau', 'like', '%'.$pattern.'%');
+                }
+            })
+            ->count();
     }
 }

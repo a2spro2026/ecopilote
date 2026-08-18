@@ -3,24 +3,17 @@
     $pageTitle = trim($__env->yieldContent('title')) ?: 'Mon espace';
     $pageHeading = trim($__env->yieldContent('heading')) ?: 'Mon espace';
     $currentUrl = request()->fullUrlWithoutQuery(['embed']);
+    $workspacePrefix = '/espace-eleve';
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $pageTitle }} · ECOPILOTE</title>
+    <title>{{ $pageTitle }} · {{ config('app.brand') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
-    <script>
-        if (window.self !== window.top) {
-            const url = new URL(window.location.href);
-            if (url.searchParams.get('embed') !== '1') {
-                url.searchParams.set('embed', '1');
-                window.location.replace(url.toString());
-            }
-        }
-    </script>
+    @include('partials.workspace-frame-guard', ['workspacePrefix' => $workspacePrefix])
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
@@ -51,7 +44,7 @@
             <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-white">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
             </span>
-            <div class="min-w-0 flex-1"><p class="text-sm font-extrabold text-slate-900" style="font-family:Poppins,sans-serif">ECOPILOTE</p><p class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Espace élève</p></div>
+            <div class="min-w-0 flex-1"><p class="text-sm font-extrabold text-slate-900" style="font-family:Poppins,sans-serif">{{ config('app.brand') }}</p><p class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Espace élève</p></div>
             <button type="button" onclick="toggleStudentSidebar(false)" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Masquer le menu">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             </button>
@@ -90,6 +83,7 @@
         <div class="flex min-h-0 flex-1 flex-col">
             @include('partials.workspace-mdi', [
                 'storageKey' => 'ecopilote.student.mdi',
+                'urlPrefix' => $workspacePrefix,
                 'initialTitle' => $pageHeading,
                 'initialUrl' => $currentUrl,
                 'accent' => 'indigo',

@@ -9,10 +9,6 @@
     $loginType = $loginType ?? 'email';
     $loginPlaceholder = $loginPlaceholder ?? 'votre.identifiant';
     $loginSuffix = $loginSuffix ?? ($loginType === 'email' ? \App\Support\EcopiloteIdentity::emailSuffix() : null);
-    $loginValue = old($loginName);
-    if ($loginSuffix) {
-        $loginValue = \App\Support\EcopiloteIdentity::localPart($loginValue);
-    }
     $openRegister = $errors->any() && in_array(old('_form'), ['prof_register', 'etudiant_register'], true)
         && (($registerPanel === 'prof' && old('_form') === 'prof_register')
             || ($registerPanel === 'etudiant' && old('_form') === 'etudiant_register'));
@@ -46,7 +42,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ $action }}" class="space-y-5">
+                <form method="POST" action="{{ $action }}" class="space-y-5" autocomplete="off">
                     @csrf
 
                     <div>
@@ -59,9 +55,11 @@
                             </span>
                             <input type="{{ $loginSuffix ? 'text' : $loginType }}"
                                    name="{{ $loginName }}"
-                                   value="{{ $loginValue }}"
+                                   value=""
                                    required
-                                   autocomplete="username"
+                                   autocomplete="off"
+                                   autocapitalize="off"
+                                   spellcheck="false"
                                    placeholder="{{ $loginPlaceholder }}"
                                    class="min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-3 text-sm outline-none">
                             @if ($loginSuffix)
@@ -85,8 +83,10 @@
                                 </svg>
                             </span>
                             <input id="{{ $passwordId }}" type="password" name="password" required
+                                   autocomplete="new-password"
+                                   value=""
                                    placeholder="••••••••"
-                                   class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-11 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
+                                   class="ep-keep-case w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-11 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
                             <button type="button" onclick="const p=document.getElementById('{{ $passwordId }}');p.type=p.type==='password'?'text':'password';"
                                     class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-blue-600" aria-label="Afficher">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -96,14 +96,6 @@
                             </button>
                         </div>
                         @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2 text-sm text-slate-600">
-                            <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                            Se souvenir de moi
-                        </label>
-                        <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700">Mot de passe oublié ?</a>
                     </div>
 
                     <button type="submit"

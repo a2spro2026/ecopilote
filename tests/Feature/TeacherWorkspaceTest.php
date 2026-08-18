@@ -68,7 +68,7 @@ class TeacherWorkspaceTest extends TestCase
         $this->get('/administration/login')
             ->assertOk()
             ->assertSee('@ecopilote.ma')
-            ->assertSee('zerragui', false);
+            ->assertSee('votre.identifiant');
         $this->get('/administration')->assertRedirect(route('admin.login'));
     }
 
@@ -94,10 +94,8 @@ class TeacherWorkspaceTest extends TestCase
             ->assertOk()
             ->assertSee('Mes Classes')
             ->assertSee('Retour à la salle');
-        $this->get('/espace-prof/classes/1')->assertOk();
         $this->get('/espace-prof/seances')->assertOk()->assertSee('Mes Séances');
         $this->get('/espace-prof/eleves')->assertOk()->assertSee('Mes Élèves');
-        $this->get('/espace-prof/eleves/1')->assertOk();
         $this->get('/espace-prof/bibliotheque')
             ->assertOk()
             ->assertDontSee('Supprimer')

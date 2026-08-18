@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -24,6 +26,82 @@ class AdminController extends Controller
             'item' => $item,
             'group' => $item['group'] ?? '',
         ]);
+    }
+
+    public function configuration()
+    {
+        return view('admin.configuration', [
+            'heroVideoUrl' => SiteSetting::heroVideoUrl(),
+            'heroVideoMime' => SiteSetting::heroVideoMime(),
+            'heroHasPicture' => SiteSetting::heroHasPicture(),
+        ]);
+    }
+
+    public function storeHeroVideo(Request $request)
+    {
+        $request->validate([
+            'video' => ['required', 'file', 'max:81920'],
+        ], [
+            'video.required' => 'Choisissez une vidéo à afficher dans Activités.',
+            'video.max' => 'La vidéo ne doit pas dépasser 80 Mo.',
+        ]);
+
+        $file = $request->file('video');
+        $originalName = strtolower((string) $file->getClientOriginalName());
+        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+        $mime = strtolower((string) ($file->getMimeType() ?: $file->getClientMimeType()));
+        $allowed = [
+            'mp4', 'm4v', 'webm', 'mov', 'qt', 'avi', 'mkv', 'mpeg', 'mpg', 'mpe', 'm2v',
+            'ogg', 'ogv', 'wmv', 'asf', '3gp', '3g2', 'flv', 'f4v', 'ts', 'm2ts', 'mts', 'vob',
+        ];
+
+        $hasVideoExtension = in_array($extension, $allowed, true);
+        $hasVideoMime = str_starts_with($mime, 'video/')
+            || str_contains($mime, 'mp4')
+            || str_contains($mime, 'mpeg')
+            || str_contains($mime, 'quicktime')
+            || str_contains($mime, 'matroska')
+            || str_contains($mime, 'webm')
+            || in_array($mime, ['application/octet-stream', 'application/ogg', 'binary/octet-stream'], true);
+
+        if (! $hasVideoExtension && ! $hasVideoMime) {
+            return back()->withErrors([
+                'video' => 'Choisissez un fichier vidéo (MP4, WebM, MOV, AVI, MKV…).',
+            ]);
+        }
+
+        if (\App\Support\VideoFile::isAudioOnly((string) $file->getRealPath())) {
+            return back()->withErrors([
+                'video' => 'Ce fichier n’a pas d’image. Choisissez une vraie vidéo (caméra, film, MP4 avec image), pas un fichier audio.',
+            ]);
+        }
+
+        $previous = SiteSetting::getValue(SiteSetting::HERO_VIDEO);
+        $path = $request->file('video')->store('site', 'public');
+        SiteSetting::setValue(SiteSetting::HERO_VIDEO, $path);
+
+        if ($previous && $previous !== $path) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        return redirect()
+            ->route('admin.page.configuration')
+            ->with('status', 'Vidéo enregistrée. Elle est disponible dans Activités.');
+    }
+
+    public function destroyHeroVideo()
+    {
+        $previous = SiteSetting::getValue(SiteSetting::HERO_VIDEO);
+
+        if ($previous) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        SiteSetting::setValue(SiteSetting::HERO_VIDEO, null);
+
+        return redirect()
+            ->route('admin.page.configuration')
+            ->with('status', 'Vidéo retirée de la page Activités.');
     }
 
     private function findNavItem(string $key): ?array
@@ -48,55 +126,23 @@ class AdminController extends Controller
             'today' => now()->locale('fr')->isoFormat('dddd D MMMM YYYY'),
 
             'stats' => [
-                ['label' => 'Élèves actifs', 'value' => '248', 'hint' => '+12 ce mois', 'up' => true, 'tone' => 'blue', 'icon' => 'users'],
-                ['label' => 'Professeurs actifs', 'value' => '64', 'hint' => '+3 validés', 'up' => true, 'tone' => 'emerald', 'icon' => 'teacher'],
-                ['label' => "Séances aujourd'hui", 'value' => '18', 'hint' => '6 restantes', 'up' => true, 'tone' => 'indigo', 'icon' => 'calendar'],
-                ['label' => 'Séances en direct', 'value' => '3', 'hint' => 'En cours', 'up' => true, 'tone' => 'green', 'icon' => 'live'],
-                ['label' => 'Demandes en attente', 'value' => '7', 'hint' => 'À traiter', 'up' => false, 'tone' => 'amber', 'icon' => 'inbox'],
-                ['label' => 'Revenus du mois', 'value' => '86 400', 'hint' => 'MAD · +8%', 'up' => true, 'tone' => 'violet', 'icon' => 'money'],
+                ['label' => 'Élèves actifs', 'value' => '0', 'hint' => 'Aucun élève', 'up' => false, 'tone' => 'blue', 'icon' => 'users'],
+                ['label' => 'Professeurs actifs', 'value' => '0', 'hint' => 'Aucun professeur', 'up' => false, 'tone' => 'emerald', 'icon' => 'teacher'],
+                ['label' => "Séances aujourd'hui", 'value' => '0', 'hint' => 'Aucune séance', 'up' => false, 'tone' => 'indigo', 'icon' => 'calendar'],
+                ['label' => 'Séances en direct', 'value' => '0', 'hint' => 'Aucune', 'up' => false, 'tone' => 'green', 'icon' => 'live'],
+                ['label' => 'Demandes en attente', 'value' => '0', 'hint' => 'Aucune demande', 'up' => false, 'tone' => 'amber', 'icon' => 'inbox'],
+                ['label' => 'Revenus du mois', 'value' => '0', 'hint' => 'MAD', 'up' => false, 'tone' => 'violet', 'icon' => 'money'],
             ],
 
-            'sessions_today' => [
-                ['matiere' => 'Mathématiques', 'prof' => 'Mme Alami', 'cible' => 'Yassine B.', 'niveau' => '2nde', 'debut' => '09:00', 'fin' => '10:00', 'duree' => '1h', 'type' => 'individuelle', 'statut' => 'active'],
-                ['matiere' => 'Physique-Chimie', 'prof' => 'M. Benali', 'cible' => 'Groupe Terminale S', 'niveau' => 'Terminale', 'debut' => '10:15', 'fin' => '11:45', 'duree' => '1h30', 'type' => 'groupe', 'statut' => 'active'],
-                ['matiere' => 'Anglais', 'prof' => 'Mme Carter', 'cible' => 'Sara M.', 'niveau' => '3ème', 'debut' => '11:00', 'fin' => '12:00', 'duree' => '1h', 'type' => 'individuelle', 'statut' => 'programmee'],
-                ['matiere' => 'Français', 'prof' => 'M. Idrissi', 'cible' => 'Groupe 1ère', 'niveau' => '1ère', 'debut' => '14:00', 'fin' => '15:00', 'duree' => '1h', 'type' => 'groupe', 'statut' => 'programmee'],
-                ['matiere' => 'SVT', 'prof' => 'Mme Zahra', 'cible' => 'Amine K.', 'niveau' => '1ère', 'debut' => '15:30', 'fin' => '16:30', 'duree' => '1h', 'type' => 'individuelle', 'statut' => 'annulee'],
-                ['matiere' => 'Histoire-Géo', 'prof' => 'M. Tazi', 'cible' => 'Nour L.', 'niveau' => '4ème', 'debut' => '08:00', 'fin' => '09:00', 'duree' => '1h', 'type' => 'individuelle', 'statut' => 'terminee'],
-            ],
+            'sessions_today' => [],
 
-            'activity' => [
-                ['tone' => 'green', 'title' => 'Séance en direct', 'text' => 'Mathématiques · Mme Alami · Yassine B.', 'time' => 'Maintenant'],
-                ['tone' => 'green', 'title' => 'Séance en direct', 'text' => 'Physique · M. Benali · Groupe Terminale S', 'time' => 'Maintenant'],
-                ['tone' => 'amber', 'title' => 'Bientôt', 'text' => 'Anglais · Mme Carter · 11:00', 'time' => 'Dans 25 min'],
-                ['tone' => 'red', 'title' => 'Séance annulée', 'text' => 'SVT · Mme Zahra · Amine K.', 'time' => 'Il y a 10 min'],
-                ['tone' => 'blue', 'title' => 'Nouvelle demande', 'text' => 'Inscription · Collège · Mathématiques', 'time' => 'Il y a 18 min'],
-                ['tone' => 'violet', 'title' => 'Nouveau professeur', 'text' => 'Candidature validable · M. Karim (Anglais)', 'time' => 'Il y a 42 min'],
-                ['tone' => 'blue', 'title' => 'Nouvelle inscription', 'text' => 'Parent · famille El Amrani', 'time' => 'Il y a 1 h'],
-            ],
+            'activity' => [],
 
             'week_days' => ['Lun 11', 'Mar 12', 'Mer 13', 'Jeu 14', 'Ven 15', 'Sam 16', 'Dim 17'],
             'week_slots' => ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
-            'week_events' => [
-                // dayIndex, slotIndex, label, type, statut
-                ['d' => 0, 's' => 0, 'label' => 'Math · Yassine', 'type' => 'individuelle', 'statut' => 'terminee'],
-                ['d' => 0, 's' => 3, 'label' => 'Anglais · Groupe', 'type' => 'groupe', 'statut' => 'programmee'],
-                ['d' => 1, 's' => 1, 'label' => 'Physique · Direct', 'type' => 'groupe', 'statut' => 'active'],
-                ['d' => 2, 's' => 2, 'label' => 'Français · Sara', 'type' => 'individuelle', 'statut' => 'programmee'],
-                ['d' => 3, 's' => 0, 'label' => 'SVT · Amine', 'type' => 'individuelle', 'statut' => 'annulee'],
-                ['d' => 3, 's' => 4, 'label' => 'Math · Groupe', 'type' => 'groupe', 'statut' => 'programmee'],
-                ['d' => 4, 's' => 1, 'label' => 'Histoire · Nour', 'type' => 'individuelle', 'statut' => 'programmee'],
-                ['d' => 5, 's' => 0, 'label' => 'Anglais · Direct', 'type' => 'individuelle', 'statut' => 'active'],
-            ],
+            'week_events' => [],
 
-            'archives' => [
-                ['kind' => 'Vidéo', 'title' => 'Séance Mathématiques — Yassine B.', 'meta' => 'Mme Alami · 2nde · 10 Août 2026', 'tone' => 'violet'],
-                ['kind' => 'Document', 'title' => 'Fiche exercices Physique', 'meta' => 'M. Benali · Terminale · 09 Août 2026', 'tone' => 'blue'],
-                ['kind' => 'Cours', 'title' => 'Support Anglais — Present Perfect', 'meta' => 'Mme Carter · 3ème · 08 Août 2026', 'tone' => 'emerald'],
-                ['kind' => 'Exercice', 'title' => 'Devoir SVT — Digestion', 'meta' => 'Mme Zahra · 1ère · 07 Août 2026', 'tone' => 'amber'],
-                ['kind' => 'Enregistrement', 'title' => 'Replay Français — Analyse littéraire', 'meta' => 'M. Idrissi · 1ère · 06 Août 2026', 'tone' => 'rose'],
-                ['kind' => 'Vidéo', 'title' => 'Séance Histoire — La Révolution', 'meta' => 'M. Tazi · 4ème · 05 Août 2026', 'tone' => 'violet'],
-            ],
+            'archives' => [],
         ];
     }
 

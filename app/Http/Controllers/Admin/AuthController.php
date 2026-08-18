@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Support\EcopiloteIdentity;
+use App\Support\WorkspaceSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,16 +30,16 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $remember = $request->boolean('remember');
+        $remember = false;
 
         if (Auth::attempt($credentials, $remember)) {
+            WorkspaceSession::enterAdmin($request);
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->route('admin.dashboard');
         }
 
         return back()
-            ->withInput($request->only('email'))
             ->withErrors(['email' => 'Identifiants incorrects. Veuillez réessayer.']);
     }
 

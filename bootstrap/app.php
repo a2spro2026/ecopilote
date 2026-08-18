@@ -19,9 +19,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'module' => \App\Http\Middleware\EnsureModuleAccess::class,
             'teacher.auth' => \App\Http\Middleware\EnsureTeacherAuthenticated::class,
             'student.auth' => \App\Http\Middleware\EnsureStudentAuthenticated::class,
+            'workspace.admin' => \App\Http\Middleware\IsolateAdminWorkspace::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('espace-eleve*')) {
+                return route('portail.etudiant');
+            }
+
+            if ($request->is('espace-prof*')) {
+                return route('portail.profs');
+            }
+
+            return route('admin.login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\SiteSetting;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer(['pages.activites', 'partials.site-video-frame'], function ($view) {
+            $view->with([
+                'heroVideoUrl' => SiteSetting::heroVideoUrl(),
+                'heroVideoMime' => SiteSetting::heroVideoMime(),
+                'heroHasPicture' => SiteSetting::heroHasPicture(),
+            ]);
+        });
     }
 }

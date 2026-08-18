@@ -21,6 +21,7 @@ class UppercaseText
         'login',
         'email',
         'photo',
+        'video',
         'file',
         'files',
         'remember',

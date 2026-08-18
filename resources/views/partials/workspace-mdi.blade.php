@@ -31,6 +31,7 @@
 <script>
 (() => {
     const STORAGE_KEY = @json($storageKey);
+    const URL_PREFIX = @json($urlPrefix ?? '/');
     const desktop = document.getElementById('mdiDesktop');
     const taskbar = document.getElementById('mdiTaskbar');
     const hint = document.getElementById('mdiHint');
@@ -44,6 +45,17 @@
         const url = new URL(raw, window.location.origin);
         url.searchParams.delete('embed');
         return url.pathname + url.search + url.hash;
+    };
+    const isAllowedUrl = (raw) => {
+        try {
+            const url = new URL(raw, window.location.origin);
+            if (url.origin !== window.location.origin) return false;
+            const path = (url.pathname || '/').replace(/\/+$/, '') || '/';
+            const prefix = String(URL_PREFIX).replace(/\/+$/, '') || '/';
+            return path === prefix || path.startsWith(prefix + '/');
+        } catch (_) {
+            return false;
+        }
     };
     const framedUrl = (raw) => {
         const url = new URL(raw, window.location.origin);
@@ -194,6 +206,7 @@
     };
 
     const createWindow = (state) => {
+        if (!isAllowedUrl(state.url)) return null;
         const size = deskSize();
         const offset = (cascade++ % 8) * 28;
         const item = {
@@ -222,6 +235,7 @@
     };
 
     const openWindow = (title, rawUrl) => {
+        if (!isAllowedUrl(rawUrl)) return null;
         const url = cleanUrl(rawUrl);
         const existing = windows.find((item) => item.url === url);
         if (existing) {
@@ -241,6 +255,7 @@
         if (!link.closest('aside, #notifMenu, #userMenu, #teacherUserMenu, #studentUserMenu')) return;
         if (link.getAttribute('href').startsWith('#')) return;
         event.preventDefault();
+        if (!isAllowedUrl(link.href)) return;
         openWindow(link.dataset.windowTitle || link.textContent.trim().replace(/\s+/g, ' '), link.href);
         document.querySelectorAll('[id$="Menu"]').forEach((menu) => menu.classList.add('hidden'));
         if (window.innerWidth < 1024) document.dispatchEvent(new CustomEvent('ecopilote:close-sidebar'));
@@ -255,6 +270,10 @@
             return;
         }
         if (event.data?.type === 'ecopilote:window-navigate') {
+            if (!isAllowedUrl(event.data.url)) {
+                closeWindow(item.id);
+                return;
+            }
             item.url = cleanUrl(event.data.url);
             item.title = event.data.title || item.title;
             item.element.querySelector('.mdi-title').textContent = item.title;
@@ -265,6 +284,7 @@
 
     let restored = [];
     try { restored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) {}
+    restored = restored.filter((state) => state && isAllowedUrl(state.url));
     if (restored.length) {
         restored.forEach(createWindow);
         if (!windows.some((item) => item.url === cleanUrl(initial.url))) {

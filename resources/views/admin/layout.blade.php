@@ -3,13 +3,14 @@
     $pageTitle = trim($__env->yieldContent('title')) ?: 'Centre de contrôle';
     $pageHeading = trim($__env->yieldContent('heading')) ?: 'Vue générale';
     $currentUrl = request()->fullUrlWithoutQuery(['embed']);
+    $workspacePrefix = '/administration';
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $pageTitle }} · ECOPILOTE</title>
+    <title>{{ $pageTitle }} · {{ config('app.brand') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800|instrument-sans:400,500,600" rel="stylesheet" />
     <script>
@@ -17,14 +18,8 @@
             (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
-        if (window.self !== window.top) {
-            const url = new URL(window.location.href);
-            if (url.searchParams.get('embed') !== '1') {
-                url.searchParams.set('embed', '1');
-                window.location.replace(url.toString());
-            }
-        }
     </script>
+    @include('partials.workspace-frame-guard', ['workspacePrefix' => $workspacePrefix])
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
@@ -59,7 +54,7 @@
                 </svg>
             </span>
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-extrabold tracking-tight text-white" style="font-family:'Poppins',sans-serif;">ECOPILOTE</p>
+                <p class="text-sm font-extrabold tracking-tight text-white" style="font-family:'Poppins',sans-serif;">{{ config('app.brand') }}</p>
                 <p class="text-[10px] font-medium uppercase tracking-wider text-emerald-400">Centre de contrôle</p>
             </div>
             <button type="button" onclick="toggleSidebar(false)"
@@ -212,6 +207,7 @@
         <div class="flex min-h-0 flex-1 flex-col">
             @include('partials.workspace-mdi', [
                 'storageKey' => 'ecopilote.admin.mdi',
+                'urlPrefix' => $workspacePrefix,
                 'initialTitle' => $pageHeading,
                 'initialUrl' => $currentUrl,
                 'accent' => 'blue',

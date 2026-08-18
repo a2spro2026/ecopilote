@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'brand' => env('APP_BRAND', 'E-SiPrès'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

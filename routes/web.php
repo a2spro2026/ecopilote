@@ -12,9 +12,11 @@ use App\Http\Controllers\Student\AuthController as StudentAuthController;
 use App\Http\Controllers\Student\WorkspaceController as StudentWorkspaceController;
 use App\Http\Controllers\Teacher\AuthController as TeacherAuthController;
 use App\Http\Controllers\Teacher\WorkspaceController;
+use App\Http\Controllers\SiteMediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
+Route::get('/media/accueil-video', [SiteMediaController::class, 'heroVideo'])->name('site.hero-video');
 Route::view('/categories', 'pages.categories')->name('categories');
 Route::view('/activites', 'pages.activites')->name('activites');
 
@@ -67,7 +69,7 @@ Route::prefix('administration')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('admin.login.attempt');
     Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'workspace.admin'])->group(function () {
         Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
         Route::get('/classes', [ClassController::class, 'index'])->name('admin.page.classes');
@@ -102,11 +104,16 @@ Route::prefix('administration')->group(function () {
         Route::post('/demandes-eleves/{application}/suspendre', [StudentController::class, 'suspendApplication'])->name('admin.students.applications.suspend');
 
         Route::get('/matieres', [SubjectController::class, 'index'])->name('admin.page.matieres');
+        Route::get('/matieres/imprimer', [SubjectController::class, 'print'])->name('admin.subjects.print');
         Route::get('/niveaux', [LevelController::class, 'index'])->name('admin.page.niveaux');
+        Route::get('/niveaux/imprimer', [LevelController::class, 'print'])->name('admin.levels.print');
         Route::get('/salles-actives', [RoomController::class, 'index'])->name('admin.page.salles-actives');
+        Route::get('/configuration', [AdminController::class, 'configuration'])->name('admin.page.configuration');
+        Route::post('/configuration/video', [AdminController::class, 'storeHeroVideo'])->name('admin.configuration.video.store');
+        Route::post('/configuration/video/supprimer', [AdminController::class, 'destroyHeroVideo'])->name('admin.configuration.video.destroy');
 
         foreach (AdminController::pageKeys() as $key) {
-            if (in_array($key, ['classes', 'candidatures-profs', 'professeurs', 'fiche-technique-professeur', 'demandes-eleves', 'eleves', 'fiche-technique-eleve', 'matieres', 'niveaux', 'salles-actives'], true)) {
+            if (in_array($key, ['classes', 'candidatures-profs', 'professeurs', 'fiche-technique-professeur', 'demandes-eleves', 'eleves', 'fiche-technique-eleve', 'matieres', 'niveaux', 'salles-actives', 'configuration'], true)) {
                 continue;
             }
             Route::get("/{$key}", [AdminController::class, 'page'])

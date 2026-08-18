@@ -29,7 +29,7 @@
         <h2 class="mb-5 font-bold text-slate-900">Informations personnelles</h2>
         <dl class="grid gap-4 sm:grid-cols-2">
             @foreach([
-                'Identifiant ECOPILOTE' => $student->login,
+                'Identifiant '.config('app.brand') => $student->login,
                 'Code élève' => $student->displayId(),
                 'Contact' => $student->contact,
                 'Contact tuteur' => $student->contact_tuteur,
@@ -44,7 +44,7 @@
                 </div>
             @endforeach
         </dl>
-        <p class="mt-5 text-xs text-slate-500">Pour corriger une information, contactez l’administration ECOPILOTE.</p>
+        <p class="mt-5 text-xs text-slate-500">Pour corriger une information, contactez l’administration {{ config('app.brand') }}.</p>
     </section>
 </div>
 @endsection
