@@ -52,6 +52,54 @@ class AdminClassCreateTest extends TestCase
         $response->assertSee($matching->id);
     }
 
+    public function test_create_form_maps_uppercase_college_label_and_unassigned_level(): void
+    {
+        $this->student([
+            'nom_complet' => 'Nour College Label',
+            'login' => 'nour.college@esipres.com',
+            'niveau_scolaire' => 'COLLÈGE',
+            'matiere' => 'MATHÉMATIQUES',
+        ]);
+        $this->student([
+            'nom_complet' => 'Imane Sans Niveau',
+            'login' => 'imane.sans@esipres.com',
+            'niveau_scolaire' => 'Non renseigné',
+            'matiere' => 'Mathématiques',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.classes.create', ['embed' => 1]))
+            ->assertOk()
+            ->assertSee('Nour College Label', false)
+            ->assertSee('Imane Sans Niveau', false)
+            ->assertSee('"niveau_key":"college"', false);
+    }
+
+    public function test_store_accepts_a_student_with_matching_subject_even_if_level_is_blank(): void
+    {
+        $teacher = $this->teacher([
+            'matiere' => 'Mathématiques',
+            'niveau' => 'college',
+        ]);
+        $student = $this->student([
+            'nom_complet' => 'Imane Sans Niveau',
+            'login' => 'imane.sans@esipres.com',
+            'niveau_scolaire' => 'Non renseigné',
+            'matiere' => 'Mathématiques',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.classes.store'), $this->payload([
+                'matiere' => 'Mathématiques',
+                'niveau' => 'college',
+                'professeur_id' => $teacher->id,
+                'eleves' => [$student->id],
+            ]))
+            ->assertRedirect(route('admin.classes.create'))
+            ->assertSessionHas('success')
+            ->assertSessionHasNoErrors();
+    }
+
     public function test_store_accepts_a_teacher_of_the_same_subject_even_if_levels_differ(): void
     {
         $teacher = $this->teacher([

@@ -45,6 +45,7 @@ class StudentController extends Controller
         return view('admin.students.technical', [
             'eleves' => Student::query()->orderBy('id')->get(),
             'matieres' => $this->subjects(),
+            'niveaux' => $this->levels(),
         ]);
     }
 
@@ -64,6 +65,7 @@ class StudentController extends Controller
             'contact_tuteur' => ['required', 'string', 'max:120'],
             'matieres' => ['required', 'array', 'min:1'],
             'matieres.*' => ['required', 'string', 'distinct', Rule::in($this->subjects())],
+            'niveau_scolaire' => ['required', 'string', Rule::in(array_keys($this->levels()))],
             'paiement' => ['required', 'numeric', 'min:0'],
             'mode_paiement' => ['required', Rule::in(['virement', 'cheque', 'especes', 'versement'])],
             'periode_paiement' => ['required', Rule::in(['mois', 'trimestre', 'semestre', 'annuel'])],
@@ -80,6 +82,7 @@ class StudentController extends Controller
             'contact' => $data['contact'],
             'contact_tuteur' => $data['contact_tuteur'],
             'matiere' => implode(', ', $data['matieres']),
+            'niveau_scolaire' => $data['niveau_scolaire'],
             'paiement' => number_format((float) $data['paiement'], 2, '.', ''),
             'mode_paiement' => $data['mode_paiement'],
             'periode_paiement' => $data['periode_paiement'],
@@ -99,7 +102,6 @@ class StudentController extends Controller
             $student = Student::create([
                 ...$payload,
                 'ville' => 'Non renseignée',
-                'niveau_scolaire' => 'Non renseigné',
                 'type_cours' => 'en_groupe',
                 'etat' => Student::ETAT_ACTIF,
             ]);
@@ -289,6 +291,19 @@ class StudentController extends Controller
             'Histoire-Géographie',
             'Informatique',
             'Arabe',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function levels(): array
+    {
+        return [
+            'primaire' => 'Primaire',
+            'college' => 'Collège',
+            'lycee' => 'Lycée',
+            'coran' => 'Coran',
         ];
     }
 }

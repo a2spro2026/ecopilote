@@ -306,26 +306,41 @@
         node.className = isEmpty ? empty : filled;
     }
 
+    function fold(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/œ/g, 'oe')
+            .replace(/æ/g, 'ae')
+            .trim();
+    }
+
     function hasSubject(list, subject) {
         if (!subject) return false;
-        const wanted = String(subject).trim().toLowerCase();
-        return (list || []).some((item) => String(item).trim().toLowerCase() === wanted);
+        const wanted = fold(subject);
+        return (list || []).some((item) => fold(item) === wanted);
     }
 
     function studentLevelKey(student) {
         if (student.niveau_key) return student.niveau_key;
-        const text = String(student.niveau || '').toLowerCase();
+        const text = fold(student.niveau || '');
+        if (!text || text.includes('non renseign')) return null;
+        if (Object.keys(levelLabels).some((key) => key === text || fold(levelLabels[key]) === text)) {
+            return Object.keys(levelLabels).find((key) => key === text || fold(levelLabels[key]) === text);
+        }
         if (text.includes('coran')) return 'coran';
-        if (text.includes('prim') || /\bcp\b|\bce1\b|\bce2\b|\bcm1\b|\bcm2\b/.test(text)) return 'primaire';
-        if (text.includes('lyc') || text.includes('2nde') || text.includes('1ère') || text.includes('1ere') || text.includes('terminale')) return 'lycee';
-        if (text.includes('coll') || text.includes('6ème') || text.includes('6eme') || text.includes('5ème') || text.includes('5eme') || text.includes('4ème') || text.includes('4eme') || text.includes('3ème') || text.includes('3eme') || text.includes('3e ')) return 'college';
+        if (text.includes('prim') || /\b(cp|ce1|ce2|cm1|cm2)\b/.test(text)) return 'primaire';
+        if (text.includes('lyc') || text.includes('2nde') || text.includes('1ere') || text.includes('terminale') || text.includes('bac')) return 'lycee';
+        if (text.includes('coll') || /\b(6eme|5eme|4eme|3eme|3e)\b/.test(text)) return 'college';
         return null;
     }
 
     function studentMatchesFilters(student, matiere, niveau) {
         if (!matiere || !niveau) return false;
-        if (studentLevelKey(student) !== niveau) return false;
-        return hasSubject(student.matieres, matiere);
+        if (!hasSubject(student.matieres, matiere)) return false;
+        const key = studentLevelKey(student);
+        return key === null || key === niveau;
     }
 
     function compatibleTeachers() {
@@ -617,6 +632,9 @@
         renderStudentResults();
         renderTeachers();
     }
+
+    els.matiere.addEventListener('change', () => { syncFilters(); updateSummary(); });
+    els.niveau.addEventListener('change', () => { syncFilters(); updateSummary(); });
 
     els.form.addEventListener('input', (e) => {
         if (['fieldMatiere', 'fieldNiveau'].includes(e.target.id)) {

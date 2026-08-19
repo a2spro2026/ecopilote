@@ -179,6 +179,16 @@
                 </div>
             </section>
 
+            <section>
+                <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Niveau scolaire</label>
+                <select id="studentLevel" name="niveau_scolaire" required class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800">
+                    <option value="">Sélectionner…</option>
+                    @foreach($niveaux as $key => $label)
+                        <option value="{{ $key }}" @selected(old('niveau_scolaire') === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </section>
+
             <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Paiement</label>
@@ -241,6 +251,7 @@
         'guardian' => $student->tuteur_nom,
         'guardianContact' => $student->contact_tuteur,
         'subjects' => array_values(array_filter(array_map('trim', explode(',', (string) $student->matiere)))),
+        'level' => $student->niveau_scolaire,
         'payment' => $student->paiement,
         'mode' => $student->mode_paiement,
         'period' => $student->periode_paiement,
@@ -296,6 +307,8 @@
         document.getElementById('studentPassword').value = '';
         document.getElementById('studentPhoto').value = '';
         document.querySelectorAll('.subjectCheckbox').forEach(box => { box.checked = false; });
+        const levelSelect = document.getElementById('studentLevel');
+        if (levelSelect) levelSelect.value = '';
         setPhoto(null);
     };
 
@@ -315,6 +328,12 @@
         document.querySelectorAll('.subjectCheckbox').forEach(box => {
             box.checked = student.subjects.includes(box.value);
         });
+        const levelSelect = document.getElementById('studentLevel');
+        if (levelSelect) {
+            const raw = String(student.level || '').toLowerCase();
+            const match = [...levelSelect.options].find((opt) => opt.value && (opt.value === student.level || opt.value === raw || opt.textContent.trim().toLowerCase() === raw));
+            levelSelect.value = match ? match.value : '';
+        }
         setPhoto(student.photo);
     };
 

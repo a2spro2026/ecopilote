@@ -82,7 +82,7 @@ class ClassController extends Controller
             ]);
         }
 
-        if (! in_array($data['matiere'], $teacher['matieres'], true)) {
+        if (! $this->hasNormalizedSubject($teacher['matieres'] ?? [], $data['matiere'])) {
             throw ValidationException::withMessages([
                 'matiere' => 'Ce professeur n’enseigne pas la matière sélectionnée.',
             ]);
@@ -165,7 +165,7 @@ class ClassController extends Controller
             ->map(fn (Teacher $teacher) => [
                 'id' => $teacher->id,
                 'nom' => $teacher->nom_complet,
-                'matieres' => array_values(array_filter(array_map('trim', explode(',', (string) $teacher->matiere)))),
+                'matieres' => $this->splitSubjects((string) $teacher->matiere),
                 'niveaux' => array_values(array_filter([(string) $teacher->niveau])),
                 'statut' => 'validé',
             ])
@@ -174,17 +174,23 @@ class ClassController extends Controller
 
     private function students(): array
     {
+        $labels = $this->levels();
+
         return Student::query()
-            ->where('etat', Student::ETAT_ACTIF)
+            ->where('etat', '!=', Student::ETAT_SUSPENDU)
             ->orderBy('id')
             ->get()
-            ->map(fn (Student $student) => [
-                'id' => $student->id,
-                'nom' => $student->nom_complet,
-                'niveau' => $student->niveau_scolaire,
-                'niveau_key' => $this->levelKeyFromText((string) $student->niveau_scolaire),
-                'matieres' => array_values(array_filter(array_map('trim', explode(',', (string) $student->matiere)))),
-            ])
+            ->map(function (Student $student) use ($labels) {
+                $key = $this->levelKeyFromText((string) $student->niveau_scolaire);
+
+                return [
+                    'id' => $student->id,
+                    'nom' => $student->nom_complet,
+                    'niveau' => ($key && isset($labels[$key])) ? $labels[$key] : $student->niveau_scolaire,
+                    'niveau_key' => $key,
+                    'matieres' => $this->splitSubjects((string) $student->matiere),
+                ];
+            })
             ->all();
     }
 
@@ -218,20 +224,65 @@ class ClassController extends Controller
         ];
     }
 
+    /**
+     * @return list<string>
+     */
+    private function splitSubjects(string $raw): array
+    {
+        return array_values(array_filter(array_map('trim', preg_split('/[,;\/|]+/', $raw) ?: [])));
+    }
+
+    private function normalize(string $value): string
+    {
+        $value = trim(mb_strtolower($value, 'UTF-8'));
+
+        return strtr($value, [
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ä' => 'a', 'å' => 'a',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'ö' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ç' => 'c', 'ñ' => 'n', 'ÿ' => 'y', 'œ' => 'oe', 'æ' => 'ae',
+        ]);
+    }
+
+    private function hasNormalizedSubject(array $subjects, string $wanted): bool
+    {
+        $needle = $this->normalize($wanted);
+
+        foreach ($subjects as $subject) {
+            if ($this->normalize((string) $subject) === $needle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function levelKeyFromText(string $value): ?string
     {
-        $text = mb_strtolower($value);
+        $text = $this->normalize($value);
+
+        if ($text === '' || str_contains($text, 'non renseign')) {
+            return null;
+        }
+
+        foreach ($this->levels() as $key => $label) {
+            if ($text === $key || $text === $this->normalize($label)) {
+                return $key;
+            }
+        }
 
         if (str_contains($text, 'coran')) {
             return 'coran';
         }
-        if (str_contains($text, 'prim') || str_contains($text, 'cp') || str_contains($text, 'ce1') || str_contains($text, 'ce2') || str_contains($text, 'cm1') || str_contains($text, 'cm2')) {
+        if (str_contains($text, 'prim') || preg_match('/\b(cp|ce1|ce2|cm1|cm2)\b/', $text)) {
             return 'primaire';
         }
-        if (str_contains($text, 'lyc') || str_contains($text, '2nde') || str_contains($text, '1ère') || str_contains($text, '1ere') || str_contains($text, 'terminale')) {
+        if (str_contains($text, 'lyc') || str_contains($text, '2nde') || str_contains($text, '1ere') || str_contains($text, 'terminale') || str_contains($text, 'bac')) {
             return 'lycee';
         }
-        if (str_contains($text, 'coll') || str_contains($text, '6ème') || str_contains($text, '6eme') || str_contains($text, '5ème') || str_contains($text, '5eme') || str_contains($text, '4ème') || str_contains($text, '4eme') || str_contains($text, '3ème') || str_contains($text, '3eme') || str_contains($text, '3e ')) {
+        if (str_contains($text, 'coll') || preg_match('/\b(6eme|5eme|4eme|3eme|3e)\b/', $text)) {
             return 'college';
         }
 
@@ -243,10 +294,12 @@ class ClassController extends Controller
      */
     private function studentMatchesFilters(array $student, string $matiere, string $niveau): bool
     {
-        if (($student['niveau_key'] ?? null) !== $niveau) {
+        if (! $this->hasNormalizedSubject($student['matieres'] ?? [], $matiere)) {
             return false;
         }
 
-        return in_array($matiere, $student['matieres'] ?? [], true);
+        $key = $student['niveau_key'] ?? null;
+
+        return $key === null || $key === $niveau;
     }
 }

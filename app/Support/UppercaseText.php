@@ -35,6 +35,7 @@ class UppercaseText
         'disponibilite',
         'role',
         'niveau',
+        'niveau_scolaire',
         'type',
         'matiere',
         'matieres',
