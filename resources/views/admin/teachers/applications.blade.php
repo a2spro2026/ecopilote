@@ -5,6 +5,11 @@
 @section('subtitle', 'Département prof')
 
 @section('content')
+@php
+    $suffix = $emailSuffix ?? \App\Support\EcopiloteIdentity::emailSuffix();
+    $showEdit = old('_form') === 'candidature_edit';
+@endphp
+
 @if (session('status'))
     <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
         {{ session('status') }}
@@ -16,9 +21,7 @@
     </div>
 @endif
 
-@php $suffix = \App\Support\EcopiloteIdentity::emailSuffix(); @endphp
-
-<div class="w-full min-h-[calc(100vh-10rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div id="candidatureTable" class="{{ $showEdit ? 'hidden' : '' }} w-full min-h-[calc(100vh-10rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
         <div>
             <h2 class="text-base font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Candidatures</h2>
@@ -103,10 +106,14 @@
                             @endif
                         </td>
                         <td>
-                            @if ($isValidee)
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30">Validée</span>
-                            @else
-                                <div class="flex flex-nowrap items-center justify-center gap-1.5">
+                            <div class="flex flex-nowrap items-center justify-center gap-1.5">
+                                <button type="button" data-edit-candidature="{{ $c->id }}" title="Modifier" aria-label="Modifier"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition hover:bg-blue-700">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/>
+                                    </svg>
+                                </button>
+                                @unless ($isValidee)
                                     <form id="{{ $formId }}" method="POST" action="{{ route('admin.teachers.applications.validate', $c) }}">
                                         @csrf
                                         <button type="submit" title="Valider" aria-label="Valider"
@@ -140,8 +147,10 @@
                                             </svg>
                                         </button>
                                     </form>
-                                </div>
-                            @endif
+                                @else
+                                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30">Validée</span>
+                                @endunless
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -153,4 +162,134 @@
         </table>
     </div>
 </div>
+
+<form id="candidaturePanel" method="POST" action=""
+      class="{{ $showEdit ? '' : 'hidden' }} min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    @csrf
+    @method('PATCH')
+    <input type="hidden" name="_form" value="candidature_edit">
+
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-blue-600 to-emerald-500 px-6 py-5 text-white">
+        <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-white/80">Modifier la candidature</p>
+            <h2 id="candidatureEditTitle" class="text-lg font-extrabold" style="font-family:'Poppins',sans-serif;">Candidature</h2>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-900">Enregistrer</button>
+            <button type="button" id="candidatureEditClose" class="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10">Fermer</button>
+        </div>
+    </div>
+
+    <div class="grid gap-4 p-6 sm:grid-cols-2 sm:p-8">
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Nom Complet</label>
+            <input id="editNom" type="text" name="nom_complet" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Contact</label>
+            <input id="editContact" type="text" name="contact" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Ville</label>
+            <input id="editVille" type="text" name="ville" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Niveau</label>
+            <select id="editNiveau" name="niveau" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+                <option value="primaire">Primaire</option>
+                <option value="college">Collège</option>
+                <option value="lycee">Lycée</option>
+                <option value="universitaire">Universitaire</option>
+            </select>
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Matière</label>
+            <input id="editMatiere" type="text" name="matiere" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Statut</label>
+            <select id="editStatut" name="statut" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+                <option value="public">Public</option>
+                <option value="prive">Privé</option>
+            </select>
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Disponibilité</label>
+            <select id="editDisponibilite" name="disponibilite" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
+                <option value="immediat">Immédiat</option>
+                <option value="a_negocier">À négocier</option>
+            </select>
+        </div>
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Login</label>
+            <div class="flex overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                <input id="editLogin" type="text" name="login" autocomplete="off" class="ep-keep-case min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 text-sm outline-none">
+                <span class="ep-keep-case flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900">{{ $suffix }}</span>
+            </div>
+        </div>
+        <div class="sm:col-span-2">
+            <label class="mb-1 block text-xs font-semibold text-slate-600">Mot de passe</label>
+            <input id="editPassword" type="text" name="access_password" minlength="6" autocomplete="off"
+                   class="ep-keep-case w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                   placeholder="Laisser vide pour ne pas changer">
+        </div>
+    </div>
+</form>
 @endsection
+
+@push('scripts')
+@php
+    $candidaturesPayload = $candidatures->mapWithKeys(function ($c) {
+        return [$c->id => [
+            'id' => $c->id,
+            'code' => $c->displayId(),
+            'nom_complet' => $c->nom_complet,
+            'contact' => $c->contact,
+            'ville' => $c->ville,
+            'matiere' => $c->matiere,
+            'niveau' => $c->niveau,
+            'statut' => $c->statut,
+            'disponibilite' => $c->disponibilite,
+            'login' => \App\Support\EcopiloteIdentity::localPart($c->login ?: \App\Support\EcopiloteIdentity::loginFromName($c->nom_complet)),
+            'access_password' => $c->access_password ?: '',
+            'updateUrl' => route('admin.teachers.applications.update', $c),
+        ]];
+    });
+@endphp
+<script>
+(() => {
+    const candidatures = @json($candidaturesPayload);
+    const table = document.getElementById('candidatureTable');
+    const panel = document.getElementById('candidaturePanel');
+    const title = document.getElementById('candidatureEditTitle');
+
+    const openEdit = (id) => {
+        const c = candidatures[id];
+        if (!c || !panel) return;
+        panel.action = c.updateUrl;
+        title.textContent = c.code + ' · ' + c.nom_complet;
+        document.getElementById('editNom').value = c.nom_complet || '';
+        document.getElementById('editContact').value = c.contact || '';
+        document.getElementById('editVille').value = c.ville || '';
+        document.getElementById('editNiveau').value = c.niveau || 'college';
+        document.getElementById('editMatiere').value = c.matiere || '';
+        document.getElementById('editStatut').value = c.statut || 'prive';
+        document.getElementById('editDisponibilite').value = c.disponibilite || 'immediat';
+        document.getElementById('editLogin').value = c.login || '';
+        document.getElementById('editPassword').value = c.access_password || '';
+        table?.classList.add('hidden');
+        panel.classList.remove('hidden');
+    };
+
+    const closeEdit = () => {
+        panel?.classList.add('hidden');
+        table?.classList.remove('hidden');
+    };
+
+    document.querySelectorAll('[data-edit-candidature]').forEach((btn) => {
+        btn.addEventListener('click', () => openEdit(Number(btn.dataset.editCandidature)));
+    });
+    document.getElementById('candidatureEditClose')?.addEventListener('click', closeEdit);
+})();
+</script>
+@endpush

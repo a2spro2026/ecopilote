@@ -101,6 +101,7 @@ Route::prefix('administration')->group(function () {
         Route::post('/candidatures-profs/{application}/valider', [TeacherController::class, 'validateApplication'])->name('admin.teachers.applications.validate');
         Route::post('/candidatures-profs/{application}/en-attente', [TeacherController::class, 'pendingApplication'])->name('admin.teachers.applications.pending');
         Route::post('/candidatures-profs/{application}/suspendre', [TeacherController::class, 'suspendApplication'])->name('admin.teachers.applications.suspend');
+        Route::patch('/candidatures-profs/{application}', [TeacherController::class, 'updateApplication'])->name('admin.teachers.applications.update');
 
         Route::get('/demandes-eleves', [StudentController::class, 'applications'])->name('admin.page.demandes-eleves');
         Route::get('/eleves', [StudentController::class, 'index'])->name('admin.page.eleves');
@@ -114,6 +115,7 @@ Route::prefix('administration')->group(function () {
         Route::post('/demandes-eleves/{application}/valider', [StudentController::class, 'validateApplication'])->name('admin.students.applications.validate');
         Route::post('/demandes-eleves/{application}/en-attente', [StudentController::class, 'pendingApplication'])->name('admin.students.applications.pending');
         Route::post('/demandes-eleves/{application}/suspendre', [StudentController::class, 'suspendApplication'])->name('admin.students.applications.suspend');
+        Route::patch('/demandes-eleves/{application}', [StudentController::class, 'updateApplication'])->name('admin.students.applications.update');
 
         Route::get('/etat-apprentissage', [LearningStatusController::class, 'index'])->name('admin.page.etat-apprentissage');
         Route::get('/fiche-paiement-eleve', [StudentPaymentController::class, 'index'])->name('admin.page.fiche-paiement-eleve');

@@ -23,6 +23,9 @@ class StudentController extends Controller
 
         return view('admin.students.applications', [
             'demandes' => $demandes,
+            'matieres' => $this->subjects(),
+            'niveaux' => $this->levels(),
+            'emailSuffix' => EcopiloteIdentity::emailSuffix(),
         ]);
     }
 
@@ -246,6 +249,80 @@ class StudentController extends Controller
             'status',
             'Demande validée — accès élève : '.$data['login'].' / '.$data['access_password']
         );
+    }
+
+    public function updateApplication(Request $request, StudentApplication $application)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $request->merge([
+            'login' => filled($request->input('login'))
+                ? EcopiloteIdentity::email((string) $request->input('login'))
+                : null,
+        ]);
+
+        $data = $request->validate([
+            'nom_complet' => ['required', 'string', 'max:120'],
+            'contact' => ['required', 'string', 'max:120'],
+            'contact_tuteur' => ['required', 'string', 'max:120'],
+            'ville' => ['required', 'string', 'max:120'],
+            'niveau_scolaire' => ['required', 'string', 'max:120'],
+            'matiere' => ['required', 'string', 'max:255'],
+            'type_cours' => ['required', Rule::in(['individuel', 'en_groupe'])],
+            'login' => [
+                'nullable',
+                'email',
+                'max:120',
+                Rule::unique('students', 'login')->ignore($application->student_id),
+            ],
+            'access_password' => ['nullable', 'string', 'min:6', 'max:120'],
+        ]);
+
+        DB::transaction(function () use ($application, $data) {
+            $application->fill([
+                'nom_complet' => $data['nom_complet'],
+                'contact' => $data['contact'],
+                'contact_tuteur' => $data['contact_tuteur'],
+                'ville' => $data['ville'],
+                'niveau_scolaire' => $data['niveau_scolaire'],
+                'matiere' => $data['matiere'],
+                'type_cours' => $data['type_cours'],
+            ]);
+
+            if (! blank($data['login'] ?? null)) {
+                $application->login = $data['login'];
+            }
+            if (! blank($data['access_password'] ?? null)) {
+                $application->access_password = $data['access_password'];
+            }
+            $application->save();
+
+            if ($application->student_id) {
+                $student = Student::query()->find($application->student_id);
+                if ($student) {
+                    $payload = [
+                        'nom_complet' => $application->nom_complet,
+                        'contact' => $application->contact,
+                        'contact_tuteur' => $application->contact_tuteur,
+                        'ville' => $application->ville,
+                        'niveau_scolaire' => $application->niveau_scolaire,
+                        'matiere' => $application->matiere,
+                        'type_cours' => $application->type_cours,
+                    ];
+                    if ($application->login) {
+                        $payload['login'] = $application->login;
+                    }
+                    if (! blank($data['access_password'] ?? null)) {
+                        $payload['access_password'] = $data['access_password'];
+                    }
+                    $student->update($payload);
+                }
+            }
+        });
+
+        return redirect()
+            ->route('admin.page.demandes-eleves')
+            ->with('status', 'Demande '.$application->displayId().' modifiée.');
     }
 
     public function pendingApplication(Request $request, StudentApplication $application)

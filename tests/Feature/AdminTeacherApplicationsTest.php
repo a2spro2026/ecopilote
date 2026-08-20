@@ -35,6 +35,46 @@ class AdminTeacherApplicationsTest extends TestCase
             ->assertSee('aria-label="Valider"', false);
     }
 
+    public function test_admin_can_edit_candidature_via_modifier(): void
+    {
+        $application = TeacherApplication::create([
+            'nom_complet' => 'Nadia El Amrani',
+            'contact' => '0600000000',
+            'ville' => 'Casablanca',
+            'matiere' => 'Mathématiques',
+            'niveau' => 'college',
+            'statut' => 'prive',
+            'disponibilite' => 'immediat',
+            'etat' => TeacherApplication::ETAT_EN_ATTENTE,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.page.candidatures-profs', ['embed' => 1]))
+            ->assertOk()
+            ->assertSee('aria-label="Modifier"', false);
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.teachers.applications.update', $application), [
+                'nom_complet' => 'Nadia El Amrani Modifiee',
+                'contact' => '0699999999',
+                'ville' => 'Rabat',
+                'matiere' => 'Physique-Chimie',
+                'niveau' => 'lycee',
+                'statut' => 'public',
+                'disponibilite' => 'a_negocier',
+                'login' => 'nadia.mod',
+                'access_password' => 'nouveau12',
+            ])
+            ->assertRedirect(route('admin.page.candidatures-profs'))
+            ->assertSessionHasNoErrors();
+
+        $application->refresh();
+        $this->assertSame('NADIA EL AMRANI MODIFIEE', $application->nom_complet);
+        $this->assertSame('RABAT', $application->ville);
+        $this->assertSame('nadia.mod@esipres.com', $application->login);
+        $this->assertSame('nouveau12', $application->access_password);
+    }
+
     public function test_admin_can_validate_candidature_with_login_and_password(): void
     {
         $application = TeacherApplication::create([

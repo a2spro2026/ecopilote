@@ -23,6 +23,8 @@ class TeacherController extends Controller
 
         return view('admin.teachers.applications', [
             'candidatures' => $candidatures,
+            'matieres' => $this->subjects(),
+            'emailSuffix' => EcopiloteIdentity::emailSuffix(),
         ]);
     }
 
@@ -246,6 +248,80 @@ class TeacherController extends Controller
             'status',
             'Candidature validée — accès professeur : '.$data['login'].' / '.$data['access_password']
         );
+    }
+
+    public function updateApplication(Request $request, TeacherApplication $application)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $request->merge([
+            'login' => filled($request->input('login'))
+                ? EcopiloteIdentity::email((string) $request->input('login'))
+                : null,
+        ]);
+
+        $data = $request->validate([
+            'nom_complet' => ['required', 'string', 'max:120'],
+            'contact' => ['required', 'string', 'max:120'],
+            'ville' => ['required', 'string', 'max:120'],
+            'matiere' => ['required', 'string', 'max:255'],
+            'niveau' => ['required', Rule::in(['primaire', 'college', 'lycee', 'universitaire'])],
+            'statut' => ['required', Rule::in(['public', 'prive'])],
+            'disponibilite' => ['required', Rule::in(['immediat', 'a_negocier'])],
+            'login' => [
+                'nullable',
+                'email',
+                'max:120',
+                Rule::unique('teachers', 'login')->ignore($application->teacher_id),
+            ],
+            'access_password' => ['nullable', 'string', 'min:6', 'max:120'],
+        ]);
+
+        DB::transaction(function () use ($application, $data) {
+            $application->fill([
+                'nom_complet' => $data['nom_complet'],
+                'contact' => $data['contact'],
+                'ville' => $data['ville'],
+                'matiere' => $data['matiere'],
+                'niveau' => $data['niveau'],
+                'statut' => $data['statut'],
+                'disponibilite' => $data['disponibilite'],
+            ]);
+
+            if (! blank($data['login'] ?? null)) {
+                $application->login = $data['login'];
+            }
+            if (! blank($data['access_password'] ?? null)) {
+                $application->access_password = $data['access_password'];
+            }
+            $application->save();
+
+            if ($application->teacher_id) {
+                $teacher = Teacher::query()->find($application->teacher_id);
+                if ($teacher) {
+                    $payload = [
+                        'nom_complet' => $application->nom_complet,
+                        'contact' => $application->contact,
+                        'ville' => $application->ville,
+                        'matiere' => $application->matiere,
+                        'niveau' => $application->niveau,
+                        'statut' => $application->statut,
+                        'disponibilite' => $application->disponibilite,
+                    ];
+                    if ($application->login) {
+                        $payload['login'] = $application->login;
+                    }
+                    if (! blank($data['access_password'] ?? null)) {
+                        $payload['access_password'] = $data['access_password'];
+                    }
+                    $teacher->update($payload);
+                }
+            }
+        });
+
+        return redirect()
+            ->route('admin.page.candidatures-profs')
+            ->with('status', 'Candidature '.$application->displayId().' modifiée.');
     }
 
     public function pendingApplication(Request $request, TeacherApplication $application)
