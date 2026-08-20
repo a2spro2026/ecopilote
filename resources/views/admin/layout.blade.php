@@ -115,19 +115,26 @@
                                 }
                             }
                         @endphp
-                        <details class="admin-dept admin-dept--{{ $department['tone'] }}" @if ($deptOpen) open @endif>
-                            <summary class="admin-dept-toggle">
-                                <span class="admin-dept-mark admin-dept-mark--{{ $department['tone'] }}">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <details class="group mb-1.5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] open:bg-white/[0.05]" @if ($deptOpen) open @endif>
+                            <summary class="flex cursor-pointer list-none items-center gap-2.5 px-2.5 py-2 text-[13px] font-bold text-slate-200 marker:content-none [&::-webkit-details-marker]:hidden">
+                                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br {{ match($department['tone'] ?? 'slate') {
+                                    'violet' => 'from-violet-500 to-violet-700',
+                                    'emerald' => 'from-emerald-500 to-emerald-700',
+                                    'amber' => 'from-amber-400 to-amber-600',
+                                    'blue' => 'from-blue-500 to-blue-700',
+                                    'indigo' => 'from-indigo-500 to-indigo-700',
+                                    default => 'from-slate-500 to-slate-700',
+                                } }} text-white shadow-sm">
+                                    <svg width="16" height="16" class="block h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $department['icon'] }}" />
                                     </svg>
                                 </span>
                                 <span class="min-w-0 flex-1 truncate">{{ $department['label'] }}</span>
-                                <svg class="admin-dept-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <svg width="14" height="14" class="block h-3.5 w-3.5 shrink-0 text-slate-500 transition group-open:rotate-90 group-open:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
                                 </svg>
                             </summary>
-                            <div class="admin-dept-body">
+                            <div class="grid gap-0.5 px-2 pb-2">
                                 @foreach ($department['items'] as $item)
                                     @include('admin.partials.sidebar-link', [
                                         'item' => $item,

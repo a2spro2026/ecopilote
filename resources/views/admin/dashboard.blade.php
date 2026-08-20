@@ -27,23 +27,24 @@
 {{-- Stats figées + contenu scrollable --}}
 <div class="classes-lock-page">
     <div class="classes-lock-toolbar">
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {{-- Une seule rangée dans la fenêtre MDI (breakpoints sur la largeur de l’iframe, pas de l’écran) --}}
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 min-[900px]:grid-cols-6">
             @foreach ($data['stats'] as $stat)
                 @php $skin = $cardSkin[$stat['tone']] ?? $cardSkin['blue']; @endphp
-                <article class="group relative overflow-hidden rounded-2xl border border-white/70 bg-white p-4 shadow-lg {{ $skin['glow'] }} ring-1 {{ $skin['ring'] }} transition duration-300 hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <article class="group relative min-w-0 overflow-hidden rounded-2xl border border-white/70 bg-white p-3 shadow-lg {{ $skin['glow'] }} ring-1 {{ $skin['ring'] }} transition duration-300 hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
                     <div class="pointer-events-none absolute inset-0 bg-gradient-to-br {{ $skin['wash'] }}"></div>
-                    <div class="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-gradient-to-br {{ $toneBg[$stat['tone']] }} opacity-20 blur-2xl transition group-hover:opacity-40"></div>
-                    <div class="relative flex items-start justify-between gap-3">
+                    <div class="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-gradient-to-br {{ $toneBg[$stat['tone']] }} opacity-20 blur-2xl transition group-hover:opacity-40"></div>
+                    <div class="relative flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{{ $stat['label'] }}</p>
-                            <p class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $stat['value'] }}</p>
-                            <p class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold {{ $stat['up'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' }}">
+                            <p class="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{{ $stat['label'] }}</p>
+                            <p class="mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">{{ $stat['value'] }}</p>
+                            <p class="mt-1.5 inline-flex max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[10px] font-bold {{ $stat['up'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' }}">
                                 <span>{{ $stat['up'] ? '▲' : '●' }}</span>
                                 {{ $stat['hint'] }}
                             </p>
                         </div>
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br {{ $toneBg[$stat['tone']] }} text-white shadow-lg {{ $skin['glow'] }}">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $toneBg[$stat['tone']] }} text-white shadow-md {{ $skin['glow'] }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 @if ($stat['icon'] === 'users')
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766"/>
                                 @elseif ($stat['icon'] === 'live')
@@ -56,7 +57,7 @@
                             </svg>
                         </span>
                     </div>
-                    <div class="relative mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div class="relative mt-3 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                         <span class="absolute inset-y-0 left-0 w-3/4 rounded-full bg-gradient-to-r {{ $skin['bar'] }}"></span>
                     </div>
                 </article>
