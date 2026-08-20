@@ -41,6 +41,16 @@
     $pendingTeacherDemandes = \App\Models\TeacherApplication::query()
         ->where('etat', \App\Models\TeacherApplication::ETAT_EN_ATTENTE)
         ->count();
+    $pendingStudentApps = \App\Models\StudentApplication::query()
+        ->where('etat', \App\Models\StudentApplication::ETAT_EN_ATTENTE)
+        ->latest()
+        ->limit(8)
+        ->get();
+    $pendingTeacherApps = \App\Models\TeacherApplication::query()
+        ->where('etat', \App\Models\TeacherApplication::ETAT_EN_ATTENTE)
+        ->latest()
+        ->limit(8)
+        ->get();
     $pendingTotal = $pendingStudentDemandes + $pendingTeacherDemandes;
 @endphp
 
@@ -161,7 +171,7 @@
     <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 hidden bg-slate-950/60 backdrop-blur-sm"></div>
 
     <div id="adminMain" class="flex h-screen flex-1 flex-col transition-[padding] duration-300 ease-out">
-        <header class="relative z-[1100] flex h-16 shrink-0 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 sm:px-6">
+        <header class="relative z-[1200] flex h-16 shrink-0 items-center gap-3 overflow-visible border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 sm:px-6">
             @include('partials.sidebar-toggle', ['tone' => 'admin', 'onclick' => 'toggleSidebar()', 'controls' => 'adminSidebar'])
 
             <div class="min-w-0 flex-1">
@@ -174,32 +184,62 @@
                 <svg class="hidden h-5 w-5 dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
             </button>
 
-            <div class="relative" id="notifMenuWrap">
-                <button type="button" id="notifMenuBtn"
+            <div class="relative z-[1300]" id="notifMenuWrap">
+                <button type="button" id="notifMenuBtn" onclick="toggleNotifMenu(event)"
                         class="relative rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" aria-label="Notifications" aria-expanded="false" aria-controls="notifMenu">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
                     @if ($pendingTotal > 0)
                         <span class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">{{ $pendingTotal }}</span>
                     @endif
                 </button>
-                <div id="notifMenu" class="absolute right-0 z-30 mt-2 hidden w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                    <div class="border-b border-slate-100 px-4 py-2.5 dark:border-slate-800">
+                <div id="notifMenu" role="menu" class="absolute right-0 top-full z-[1400] mt-2 hidden max-h-[70vh] w-80 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                    <div class="sticky top-0 border-b border-slate-100 bg-white px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900">
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Notifications</p>
+                        @if ($pendingTotal > 0)
+                            <p class="mt-0.5 text-[11px] text-slate-400">{{ $pendingTotal }} en attente</p>
+                        @endif
                     </div>
+
                     @if ($pendingStudentDemandes > 0)
-                        <a href="{{ route('admin.page.demandes-eleves') }}" data-window-title="Demandes élèves" class="block px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <p class="font-semibold text-slate-800 dark:text-slate-100">Demandes élèves</p>
-                            <p class="mt-0.5 text-xs text-slate-500">{{ $pendingStudentDemandes }} inscription(s) en attente de validation</p>
+                        <div class="border-b border-slate-100 px-4 py-2 dark:border-slate-800">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-violet-600 dark:text-violet-300">Demandes élèves</p>
+                        </div>
+                        @foreach ($pendingStudentApps as $app)
+                            <a href="{{ route('admin.page.demandes-eleves') }}" data-window-title="Demandes"
+                               class="block px-4 py-2.5 text-sm hover:bg-violet-50 dark:hover:bg-violet-950/30">
+                                <p class="font-semibold text-slate-800 dark:text-slate-100">{{ $app->nom_complet }}</p>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ $app->displayId() }} · {{ $app->created_at?->format('d/m/Y H:i') }} · inscription</p>
+                            </a>
+                        @endforeach
+                        <a href="{{ route('admin.page.demandes-eleves') }}" data-window-title="Demandes"
+                           class="block border-b border-slate-100 px-4 py-2 text-xs font-bold text-violet-600 hover:bg-violet-50 dark:border-slate-800 dark:text-violet-300 dark:hover:bg-violet-950/30">
+                            Ouvrir le tableau Demandes →
                         </a>
                     @endif
+
                     @if ($pendingTeacherDemandes > 0)
-                        <a href="{{ route('admin.page.candidatures-profs') }}" data-window-title="Candidatures professeurs" class="block border-t border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
-                            <p class="font-semibold text-slate-800 dark:text-slate-100">Candidatures professeurs</p>
-                            <p class="mt-0.5 text-xs text-slate-500">{{ $pendingTeacherDemandes }} candidature(s) en attente</p>
+                        <div class="border-b border-slate-100 px-4 py-2 dark:border-slate-800">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">Candidatures professeurs</p>
+                        </div>
+                        @foreach ($pendingTeacherApps as $app)
+                            <a href="{{ route('admin.page.candidatures-profs') }}" data-window-title="Candidatures"
+                               class="block px-4 py-2.5 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
+                                <p class="font-semibold text-slate-800 dark:text-slate-100">{{ $app->nom_complet }}</p>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ $app->displayId() }} · {{ $app->created_at?->format('d/m/Y H:i') }} · candidature</p>
+                            </a>
+                        @endforeach
+                        <a href="{{ route('admin.page.candidatures-profs') }}" data-window-title="Candidatures"
+                           class="block border-b border-slate-100 px-4 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:border-slate-800 dark:text-emerald-300 dark:hover:bg-emerald-950/30">
+                            Ouvrir le tableau Candidatures →
                         </a>
                     @endif
+
                     @if ($pendingTotal === 0)
                         <p class="px-4 py-6 text-center text-xs text-slate-500">Aucune notification</p>
+                        <div class="border-t border-slate-100 dark:border-slate-800">
+                            <a href="{{ route('admin.page.demandes-eleves') }}" data-window-title="Demandes" class="block px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800">Voir Demandes élèves</a>
+                            <a href="{{ route('admin.page.candidatures-profs') }}" data-window-title="Candidatures" class="block px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800">Voir Candidatures professeurs</a>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -287,6 +327,20 @@
 
     document.addEventListener('ecopilote:close-sidebar', () => setSidebarOpen(false));
 
+    function toggleNotifMenu(event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        const menu = document.getElementById('notifMenu');
+        const btn = document.getElementById('notifMenuBtn');
+        if (!menu || !btn) return;
+        const willOpen = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden', !willOpen);
+        btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        document.getElementById('userMenu')?.classList.add('hidden');
+    }
+
     function toggleTheme() {
         const root = document.documentElement;
         root.classList.toggle('dark');
@@ -306,16 +360,6 @@
         }
     });
 
-    document.getElementById('notifMenuBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const menu = document.getElementById('notifMenu');
-        const btn = e.currentTarget;
-        if (!menu) return;
-        const open = menu.classList.toggle('hidden') === false;
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        document.getElementById('userMenu')?.classList.add('hidden');
-    });
-
     document.addEventListener('click', (e) => {
         const wrap = document.getElementById('userMenuWrap');
         if (wrap && !wrap.contains(e.target)) {
@@ -326,6 +370,13 @@
             document.getElementById('notifMenu')?.classList.add('hidden');
             document.getElementById('notifMenuBtn')?.setAttribute('aria-expanded', 'false');
         }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        document.getElementById('notifMenu')?.classList.add('hidden');
+        document.getElementById('notifMenuBtn')?.setAttribute('aria-expanded', 'false');
+        document.getElementById('userMenu')?.classList.add('hidden');
     });
 </script>
 </body>
