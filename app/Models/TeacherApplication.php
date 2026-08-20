@@ -32,6 +32,11 @@ class TeacherApplication extends Model
         return $this->belongsTo(Teacher::class);
     }
 
+    public function displayId(): string
+    {
+        return 'CP-'.str_pad((string) $this->id, 4, '0', STR_PAD_LEFT);
+    }
+
     public function niveauLabel(): string
     {
         return match ($this->niveau) {

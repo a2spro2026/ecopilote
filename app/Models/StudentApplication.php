@@ -32,6 +32,11 @@ class StudentApplication extends Model
         return $this->belongsTo(Student::class);
     }
 
+    public function displayId(): string
+    {
+        return 'DE-'.str_pad((string) $this->id, 4, '0', STR_PAD_LEFT);
+    }
+
     public function typeCoursLabel(): string
     {
         return match ($this->type_cours) {
