@@ -107,9 +107,17 @@ class AdminController extends Controller
     private function findNavItem(string $key): ?array
     {
         foreach (config('admin.navigation', []) as $section) {
-            foreach ($section['items'] as $item) {
+            foreach ($section['items'] ?? [] as $item) {
                 if (($item['key'] ?? null) === $key) {
                     return array_merge($item, ['group' => $section['group']]);
+                }
+            }
+
+            foreach ($section['departments'] ?? [] as $department) {
+                foreach ($department['items'] ?? [] as $item) {
+                    if (($item['key'] ?? null) === $key) {
+                        return array_merge($item, ['group' => $department['label'] ?? $section['group']]);
+                    }
                 }
             }
         }
@@ -123,8 +131,6 @@ class AdminController extends Controller
     private function mockDashboard(): array
     {
         return [
-            'today' => now()->locale('fr')->isoFormat('dddd D MMMM YYYY'),
-
             'stats' => [
                 ['label' => 'Élèves actifs', 'value' => '0', 'hint' => 'Aucun élève', 'up' => false, 'tone' => 'blue', 'icon' => 'users'],
                 ['label' => 'Professeurs actifs', 'value' => '0', 'hint' => 'Aucun professeur', 'up' => false, 'tone' => 'emerald', 'icon' => 'teacher'],
@@ -133,10 +139,6 @@ class AdminController extends Controller
                 ['label' => 'Demandes en attente', 'value' => '0', 'hint' => 'Aucune demande', 'up' => false, 'tone' => 'amber', 'icon' => 'inbox'],
                 ['label' => 'Revenus du mois', 'value' => '0', 'hint' => 'MAD', 'up' => false, 'tone' => 'violet', 'icon' => 'money'],
             ],
-
-            'sessions_today' => [],
-
-            'activity' => [],
 
             'week_days' => ['Lun 11', 'Mar 12', 'Mer 13', 'Jeu 14', 'Ven 15', 'Sam 16', 'Dim 17'],
             'week_slots' => ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
@@ -149,15 +151,25 @@ class AdminController extends Controller
     public static function pageKeys(): array
     {
         $keys = [];
+
         foreach (config('admin.navigation', []) as $section) {
-            foreach ($section['items'] as $item) {
-                if (! empty($item['route'])) {
+            foreach ($section['items'] ?? [] as $item) {
+                if (! empty($item['route']) || empty($item['key'])) {
                     continue;
                 }
                 $keys[] = $item['key'];
             }
+
+            foreach ($section['departments'] ?? [] as $department) {
+                foreach ($department['items'] ?? [] as $item) {
+                    if (! empty($item['route']) || empty($item['key'])) {
+                        continue;
+                    }
+                    $keys[] = $item['key'];
+                }
+            }
         }
 
-        return $keys;
+        return array_values(array_unique($keys));
     }
 }

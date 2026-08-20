@@ -85,7 +85,7 @@
                 {{ $next['statut_label'] }}
             </span>
         </div>
-        <a href="{{ route('teacher.salle') }}" class="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-extrabold tracking-wide text-slate-900 transition hover:bg-emerald-50">
+        <a href="{{ ! empty($next['joinable']) && ! empty($next['id']) ? route('teacher.salle.show', $next['id']) : route('teacher.salle') }}" class="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-extrabold tracking-wide text-slate-900 transition hover:bg-emerald-50 {{ empty($next['joinable']) ? 'pointer-events-none opacity-60' : '' }}">
             ENTRER DANS LA SALLE
         </a>
     </div>
@@ -104,8 +104,10 @@
                         <p class="font-bold text-slate-900">{{ $s['matiere'] }} · {{ $s['classe'] }}</p>
                         <p class="text-sm text-slate-500">{{ $s['heure'] }} · {{ $s['eleves'] }} élèves</p>
                     </div>
-                    @if ($s['statut'] === 'a_venir')
-                        <a href="{{ route('teacher.salle') }}" class="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white">Entrer</a>
+                    @if ($s['statut'] === 'a_venir' && ! empty($s['joinable']))
+                        <a href="{{ route('teacher.salle.show', $s['id']) }}" class="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white">Entrer</a>
+                    @elseif ($s['statut'] === 'en_direct' && ! empty($s['joinable']))
+                        <a href="{{ route('teacher.salle.show', $s['id']) }}" class="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">Rejoindre</a>
                     @endif
                 </article>
             @endforeach

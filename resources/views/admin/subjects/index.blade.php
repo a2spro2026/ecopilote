@@ -54,7 +54,7 @@
             </colgroup>
             <thead>
                 <tr>
-                    <th>Matière</th>
+                    <th class="ep-cell-start">Matière</th>
                     <th>Nbrs Profs</th>
                     <th>Nbrs Étudiant</th>
                     <th>Nbrs H/mois</th>
@@ -66,10 +66,10 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 @foreach ($matieres as $m)
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                        <td>
-                            <div class="flex items-center gap-3">
+                        <td class="ep-cell-start">
+                            <div class="flex min-w-0 items-center gap-3">
                                 @include('admin.subjects.icon', ['m' => $m, 'toneBg' => $toneBg])
-                                <span class="truncate font-semibold text-slate-800 dark:text-slate-100" title="{{ $m['nom'] }}">{{ $m['nom'] }}</span>
+                                <span class="truncate text-left font-semibold text-slate-800 dark:text-slate-100" title="{{ $m['nom'] }}">{{ \App\Support\SubjectAbbreviation::display($m['nom']) }}</span>
                             </div>
                         </td>
                         <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $m['profs'] }}</td>

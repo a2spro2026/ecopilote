@@ -20,8 +20,9 @@
             'Contact tuteur' => $eleve->contact_tuteur,
             'Matières' => $eleve->matiere,
             'Paiement' => $eleve->paiementDisplay(),
-            'Mode de paiement' => $eleve->mode_paiement ?: '—',
-            'Échéance' => $eleve->periode_paiement ?: '—',
+            'Montant Total' => $eleve->montantTotalDisplay(),
+            'Mode paiement' => $eleve->modePaiementLabel(),
+            'Échéance' => $eleve->periodePaiementLabel(),
             'Login' => $eleve->login,
             'Mot de passe' => $eleve->access_password,
         ] as $label => $value)

@@ -53,7 +53,9 @@
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Matière</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->matiere }}</dd></div>
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Type Cours</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->typeCoursLabel() }}</dd></div>
         <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Paiement</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->paiementDisplay() }}</dd></div>
-        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Échéance</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->echeanceDisplay() }}</dd></div>
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Montant Total</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->montantTotalDisplay() }}</dd></div>
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Mode paiement</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->modePaiementLabel() }}</dd></div>
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800"><dt class="text-xs text-slate-500">Échéance</dt><dd class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ $eleve->periodePaiementLabel() ?: $eleve->echeanceDisplay() }}</dd></div>
     </dl>
 </section>
 @endsection

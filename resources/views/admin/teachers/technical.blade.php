@@ -72,7 +72,7 @@
                             <td class="!px-2 font-semibold text-slate-900 dark:text-white">{{ $p->displayId() }}</td>
                             <td class="truncate font-medium text-slate-800 dark:text-slate-100" title="{{ $p->nom_complet }}">{{ $p->nom_complet }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->statutLabel() }}</td>
-                            <td class="whitespace-normal text-slate-600 dark:text-slate-300" title="{{ $p->matiere ?: '—' }}">{{ $p->matiere ?: '—' }}</td>
+                            <td class="text-[12px] font-semibold text-slate-700 dark:text-slate-200" title="{{ $p->matiere ?: '—' }}">{{ \App\Support\SubjectAbbreviation::display($p->matiere) }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->paiementLabel() }}</td>
                             <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $p->montantDisplay() }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->periodePaiementLabel() }}</td>

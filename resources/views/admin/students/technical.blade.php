@@ -43,26 +43,32 @@
         </div>
     @else
         <div class="w-full overflow-x-auto">
-            <table class="ep-table min-w-[1280px] w-full table-fixed text-sm">
+                    <table class="ep-table min-w-[1480px] w-full table-fixed text-sm">
                 <colgroup>
+                    <col class="w-[6%]">
+                    <col class="w-[7%]">
                     <col class="w-[8%]">
-                    <col class="w-[16%]">
                     <col class="w-[13%]">
-                    <col class="w-[12%]">
-                    <col class="w-[16%]">
-                    <col class="w-[9%]">
+                    <col class="w-[11%]">
                     <col class="w-[9%]">
                     <col class="w-[9%]">
                     <col class="w-[8%]">
+                    <col class="w-[8%]">
+                    <col class="w-[8%]">
+                    <col class="w-[7%]">
+                    <col class="w-[7%]">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th class="!px-2">ID</th>
+                        <th class="!px-2">Photo</th>
+                        <th class="!px-1">ID</th>
+                        <th title="Date d’inscription">Date</th>
                         <th>Nom Complet</th>
                         <th>Nom Tuteur</th>
                         <th>Contact</th>
                         <th>Matières</th>
                         <th>Paiement</th>
+                        <th>Total</th>
                         <th>Mode</th>
                         <th>Échéance</th>
                         <th>Action</th>
@@ -71,23 +77,32 @@
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach ($eleves as $e)
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                            <td class="!px-2 font-semibold text-slate-900 dark:text-white">{{ $e->displayId() }}</td>
+                            <td class="!px-2">
+                                @if ($e->photo_url)
+                                    <img src="{{ $e->photo_url }}" alt="" class="mx-auto h-9 w-9 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700">
+                                @else
+                                    <span class="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-[11px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">{{ strtoupper(mb_substr($e->nom_complet, 0, 1)) }}</span>
+                                @endif
+                            </td>
+                            <td class="!px-1 text-[11px] font-semibold text-slate-900 dark:text-white">{{ $e->displayId() }}</td>
+                            <td class="text-[12px] text-slate-600 dark:text-slate-300">{{ $e->created_at?->format('d/m/Y') ?: '—' }}</td>
                             <td class="truncate font-medium text-slate-800 dark:text-slate-100" title="{{ $e->nom_complet }}">{{ $e->nom_complet }}</td>
                             <td class="truncate text-slate-600 dark:text-slate-300" title="{{ $e->tuteur_nom ?: 'Non renseigné' }}">{{ $e->tuteur_nom ?: '—' }}</td>
                             <td class="truncate text-slate-600 dark:text-slate-300" title="{{ $e->contact }}">{{ $e->contact }}</td>
-                            <td class="whitespace-normal text-slate-600 dark:text-slate-300" title="{{ $e->matiere ?: '—' }}">{{ $e->matiere ?: '—' }}</td>
+                            <td class="text-[12px] font-semibold text-slate-700 dark:text-slate-200" title="{{ $e->matiere ?: '—' }}">{{ \App\Support\SubjectAbbreviation::display($e->matiere) }}</td>
                             <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $e->paiementDisplay() }}</td>
+                            <td class="font-semibold text-emerald-700 dark:text-emerald-300">{{ $e->montantTotalDisplay() }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $e->modePaiementLabel() }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $e->periodePaiementLabel() }}</td>
                             <td>
                                 <div class="flex flex-nowrap items-center justify-center gap-1.5">
-                                    <a href="{{ route('admin.students.show', $e) }}" title="Voir" aria-label="Voir"
-                                       class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
+                                    <button type="button" data-view-student="{{ $e->id }}" title="Voir" aria-label="Voir"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
                                         </svg>
-                                    </a>
+                                    </button>
                                     <button type="button" data-edit-student="{{ $e->id }}" title="Modifier" aria-label="Modifier"
                                             class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition hover:bg-blue-700">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -103,12 +118,6 @@
                                             </svg>
                                         </button>
                                     </form>
-                                    <a href="{{ route('admin.students.print', $e) }}" target="_blank" title="Imprimer" aria-label="Imprimer"
-                                       class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white transition hover:bg-emerald-700">
-                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829h10.56M6.72 17.443h10.56M6.72 21h10.56A1.72 1.72 0 0 0 19 19.28V9.5H5v9.78A1.72 1.72 0 0 0 6.72 21ZM7 5V3h10v2m2 0H5a3 3 0 0 0-3 3v5h3V9.5h14V13h3V8a3 3 0 0 0-3-3Z"/>
-                                        </svg>
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -120,7 +129,7 @@
 </div>
 
 <form id="ficheElevePanel" method="POST" action="{{ route('admin.students.technical.store') }}" enctype="multipart/form-data"
-      class="{{ $showForm ? '' : 'hidden' }} overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      class="{{ $showForm ? '' : 'hidden' }} min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
     @csrf
     <input type="hidden" name="student_id" id="studentId" value="{{ old('student_id') }}">
 
@@ -129,9 +138,9 @@
         <p class="mt-1 text-sm text-blue-50">Complétez l’identité, les matières, le paiement et la photo.</p>
     </div>
 
-    <div class="grid gap-6 p-5 lg:grid-cols-[220px_1fr] sm:p-6">
+    <div class="grid gap-8 p-6 lg:grid-cols-[300px_minmax(0,1fr)] sm:p-8">
         <aside>
-            <label for="studentPhoto" class="group relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-blue-200 bg-blue-50/60 text-center transition hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800">
+            <label for="studentPhoto" class="group relative flex aspect-[4/5] min-h-[22rem] cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-blue-200 bg-blue-50/60 text-center transition hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800">
                 <img id="photoPreview" class="absolute inset-0 hidden h-full w-full object-cover" alt="Aperçu de la photo">
                 <span id="photoPlaceholder" class="px-4 text-blue-600 dark:text-blue-300">
                     <svg class="mx-auto h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23l-1.134.175A2.17 2.17 0 0 0 2.25 9.574V18A2.25 2.25 0 0 0 4.5 20.25h15A2.25 2.25 0 0 0 21.75 18V9.574a2.17 2.17 0 0 0-1.802-2.169l-1.134-.175a2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.19 2.19 0 0 0-1.736-1.039h-5.232a2.19 2.19 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/></svg>
@@ -189,14 +198,19 @@
                 </select>
             </section>
 
-            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Paiement</label>
                     <input id="studentPayment" type="number" name="paiement" value="{{ old('paiement') }}" min="0" step="0.01" required
                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800">
                 </div>
                 <div>
-                    <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mode de paiement</label>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Montant Total</label>
+                    <input id="studentPaymentTotal" type="text" value="" readonly
+                           class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Mode paiement</label>
                     <select id="studentPaymentMode" name="mode_paiement" required class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800">
                         <option value="">Sélectionner</option>
                         <option value="virement" @selected(old('mode_paiement') === 'virement')>Virement</option>
@@ -239,6 +253,27 @@
         <button type="submit" class="rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20">Valider</button>
     </div>
 </form>
+
+<section id="ficheEleveView" class="hidden min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="border-b border-slate-200 bg-gradient-to-r from-slate-800 to-blue-600 px-6 py-5 text-white dark:border-slate-800">
+        <h2 class="text-lg font-extrabold" style="font-family:'Poppins',sans-serif;">Fiche élève</h2>
+        <p class="mt-1 text-sm text-blue-50">Consultez la fiche, imprimez-la ou revenez au tableau.</p>
+    </div>
+    <div class="grid gap-8 p-6 lg:grid-cols-[280px_minmax(0,1fr)] sm:p-8">
+        <aside class="flex flex-col items-center">
+            <div id="viewStudentPhotoWrap" class="flex aspect-[4/5] w-full min-h-[20rem] items-center justify-center overflow-hidden rounded-3xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                <img id="viewStudentPhoto" alt="" class="hidden h-full w-full object-cover">
+                <span id="viewStudentInitial" class="text-5xl font-black text-slate-400"></span>
+            </div>
+            <p id="viewStudentCode" class="mt-4 text-sm font-bold text-slate-500"></p>
+        </aside>
+        <dl id="viewStudentFields" class="grid content-start gap-3 sm:grid-cols-2"></dl>
+    </div>
+    <div class="flex flex-wrap justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <button type="button" id="viewStudentClose" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">Fermer</button>
+        <a id="viewStudentPrint" href="#" target="_blank" rel="noopener" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">Imprimer</a>
+    </div>
+</section>
 @endsection
 
 @push('scripts')
@@ -251,13 +286,22 @@
         'guardian' => $student->tuteur_nom,
         'guardianContact' => $student->contact_tuteur,
         'subjects' => array_values(array_filter(array_map('trim', explode(',', (string) $student->matiere)))),
+        'subjectsLabel' => \App\Support\SubjectAbbreviation::display($student->matiere),
+        'subjectsFull' => $student->matiere ?: '—',
         'level' => $student->niveau_scolaire,
+        'levelLabel' => $niveaux[$student->niveau_scolaire] ?? $student->niveau_scolaire,
         'payment' => $student->paiement,
+        'paymentLabel' => $student->paiementDisplay(),
+        'totalLabel' => $student->montantTotalDisplay(),
         'mode' => $student->mode_paiement,
+        'modeLabel' => $student->modePaiementLabel(),
         'period' => $student->periode_paiement,
+        'periodLabel' => $student->periodePaiementLabel(),
         'login' => \App\Support\EcopiloteIdentity::localPart($student->login),
         'password' => $student->access_password,
         'photo' => $student->photo_url,
+        'date' => $student->created_at?->format('d/m/Y'),
+        'printUrl' => route('admin.students.print', $student),
     ])->values();
 @endphp
 <script>
@@ -265,6 +309,7 @@
     const students = @json($studentsPayload);
     const table = document.getElementById('ficheEleveTable');
     const panel = document.getElementById('ficheElevePanel');
+    const viewPanel = document.getElementById('ficheEleveView');
     const hiddenId = document.getElementById('studentId');
     const title = document.getElementById('ficheElevePanelTitle');
     const label = document.getElementById('selectedStudentLabel');
@@ -292,6 +337,12 @@
         placeholder.classList.remove('hidden');
     };
 
+    const updatePaymentTotal = () => {
+        const count = document.querySelectorAll('.subjectCheckbox:checked').length;
+        const unit = Number(document.getElementById('studentPayment').value || 0);
+        document.getElementById('studentPaymentTotal').value = (unit * count).toFixed(2);
+    };
+
     const resetForm = () => {
         hiddenId.value = '';
         title.textContent = 'Nouvelle fiche élève';
@@ -310,6 +361,7 @@
         const levelSelect = document.getElementById('studentLevel');
         if (levelSelect) levelSelect.value = '';
         setPhoto(null);
+        updatePaymentTotal();
     };
 
     const loadStudent = student => {
@@ -335,9 +387,62 @@
             levelSelect.value = match ? match.value : '';
         }
         setPhoto(student.photo);
+        updatePaymentTotal();
+    };
+
+    const escapeHtml = value => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const field = (label, value) => `
+        <div class="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-slate-800">
+            <dt class="text-xs text-slate-500">${escapeHtml(label)}</dt>
+            <dd class="text-sm font-medium text-slate-800 dark:text-slate-100">${escapeHtml(value || '—')}</dd>
+        </div>`;
+
+    const openView = student => {
+        document.getElementById('viewStudentCode').textContent = `${student.code} · ${student.date || ''}`;
+        document.getElementById('viewStudentFields').innerHTML = [
+            field('Date d’inscription', student.date),
+            field('Nom Complet', student.name),
+            field('Nom du tuteur', student.guardian),
+            field('Contact', student.contact),
+            field('Contact tuteur', student.guardianContact),
+            field('Niveau', student.levelLabel),
+            field('Matières', student.subjectsLabel),
+            field('Paiement', student.paymentLabel),
+            field('Montant Total', student.totalLabel),
+            field('Mode', student.modeLabel),
+            field('Échéance', student.periodLabel),
+            field('Login', student.login),
+        ].join('');
+        const img = document.getElementById('viewStudentPhoto');
+        const initial = document.getElementById('viewStudentInitial');
+        if (student.photo) {
+            img.src = student.photo;
+            img.classList.remove('hidden');
+            initial.classList.add('hidden');
+        } else {
+            img.classList.add('hidden');
+            img.removeAttribute('src');
+            initial.classList.remove('hidden');
+            initial.textContent = (student.name || '?').charAt(0).toUpperCase();
+        }
+        document.getElementById('viewStudentPrint').href = student.printUrl;
+        table.classList.add('hidden');
+        panel.classList.add('hidden');
+        viewPanel.classList.remove('hidden');
+    };
+
+    const closeView = () => {
+        viewPanel.classList.add('hidden');
+        table.classList.remove('hidden');
     };
 
     const openPanel = student => {
+        viewPanel.classList.add('hidden');
         if (student) {
             loadStudent(student);
         } else {
@@ -355,6 +460,14 @@
 
     document.getElementById('ficheEleveAdd')?.addEventListener('click', () => openPanel(null));
     document.getElementById('ficheEleveCancel')?.addEventListener('click', closePanel);
+    document.getElementById('viewStudentClose')?.addEventListener('click', closeView);
+
+    document.querySelectorAll('[data-view-student]').forEach(button => {
+        button.addEventListener('click', () => {
+            const student = students.find(item => item.id === Number(button.dataset.viewStudent));
+            if (student) openView(student);
+        });
+    });
 
     document.querySelectorAll('[data-edit-student]').forEach(button => {
         button.addEventListener('click', () => {
@@ -374,10 +487,17 @@
         setPhoto(URL.createObjectURL(file));
     });
 
+    document.getElementById('studentPayment').addEventListener('input', updatePaymentTotal);
+    document.querySelectorAll('.subjectCheckbox').forEach(box => {
+        box.addEventListener('change', updatePaymentTotal);
+    });
+
     const oldId = Number(hiddenId.value);
     if (oldId) {
         const student = students.find(item => item.id === oldId);
         if (student) loadStudent(student);
+    } else {
+        updatePaymentTotal();
     }
 })();
 </script>

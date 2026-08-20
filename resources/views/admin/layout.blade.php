@@ -66,57 +66,79 @@
             </button>
         </div>
 
-        <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+        <nav class="flex-1 space-y-4 overflow-y-auto px-3 py-4">
             @foreach ($nav as $section)
                 <div>
-                    <p class="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{{ $section['group'] }}</p>
-                    <div class="space-y-0.5">
-                        @foreach ($section['items'] as $item)
-                            @php
-                                $customRoute = $item['route'] ?? null;
-                                $href = $customRoute
-                                    ? route($customRoute)
-                                    : route('admin.page.'.$item['key']);
-                                $active = $customRoute
-                                    ? request()->routeIs($customRoute)
-                                    : request()->routeIs('admin.page.'.$item['key']);
-                                if (($item['key'] ?? '') === 'classes' && request()->routeIs('admin.classes.show')) {
-                                    $active = true;
-                                }
-                                if (($item['key'] ?? '') === 'professeurs' && request()->routeIs('admin.teachers.*')) {
-                                    $active = true;
-                                }
-                                if (($item['key'] ?? '') === 'eleves' && request()->routeIs('admin.students.show', 'admin.students.edit')) {
-                                    $active = true;
-                                }
-                                if (($item['key'] ?? '') === 'fiche-technique-eleve' && request()->routeIs('admin.students.technical')) {
-                                    $active = true;
-                                }
-                                if (($item['key'] ?? '') === 'fiche-technique-professeur' && request()->routeIs('admin.teachers.technical')) {
-                                    $active = true;
-                                }
-                                $badge = $item['badge'] ?? null;
-                                if (($item['key'] ?? '') === 'demandes-eleves') {
-                                    $badge = $pendingStudentDemandes > 0 ? $pendingStudentDemandes : null;
-                                }
-                                if (($item['key'] ?? '') === 'candidatures-profs') {
-                                    $badge = $pendingTeacherDemandes > 0 ? $pendingTeacherDemandes : null;
-                                }
-                                $child = (bool) ($item['child'] ?? false);
-                            @endphp
-                            <a href="{{ $href }}" data-window-title="{{ $item['label'] }}"
-                               class="group flex items-center gap-2.5 rounded-xl px-3 py-2 font-medium transition {{ $child ? 'ml-7 border-l border-slate-700 pl-3 text-[12px]' : 'text-[13px]' }}
-                                      {{ $active ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
-                                <svg class="h-4.5 w-4.5 shrink-0 {{ $active ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-300' }}" style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                    <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{{ $section['group'] }}</p>
+
+                    @foreach ($section['items'] ?? [] as $item)
+                        @php
+                            $customRoute = $item['route'] ?? null;
+                            $href = $customRoute ? route($customRoute) : route('admin.page.'.$item['key']);
+                            $active = $customRoute ? request()->routeIs($customRoute) : request()->routeIs('admin.page.'.$item['key']);
+                        @endphp
+                        <a href="{{ $href }}" data-window-title="{{ $item['label'] }}"
+                           class="group mb-1 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition
+                                  {{ $active ? 'bg-white/10 text-white shadow-inner' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 text-white shadow-sm">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
                                 </svg>
-                                <span class="flex-1 truncate">{{ $item['label'] }}</span>
-                                @if ($badge)
-                                    <span class="min-w-[1.25rem] rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-sm shadow-rose-500/40">{{ $badge }}</span>
-                                @endif
-                            </a>
-                        @endforeach
-                    </div>
+                            </span>
+                            <span class="truncate">{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
+
+                    @foreach ($section['departments'] ?? [] as $department)
+                        @php
+                            $deptOpen = false;
+                            foreach ($department['items'] as $deptItem) {
+                                $itemRoute = $deptItem['route'] ?? null;
+                                $isActive = $itemRoute
+                                    ? request()->routeIs($itemRoute)
+                                    : request()->routeIs('admin.page.'.$deptItem['key']);
+                                if (($deptItem['key'] ?? '') === 'classes' && request()->routeIs('admin.classes.*')) {
+                                    $isActive = true;
+                                }
+                                if (($deptItem['key'] ?? '') === 'cours-classes' && (request()->routeIs('admin.page.classes') || request()->routeIs('admin.classes.*'))) {
+                                    $isActive = true;
+                                }
+                                if (($deptItem['key'] ?? '') === 'fiche-technique-eleve' && request()->routeIs('admin.students.technical')) {
+                                    $isActive = true;
+                                }
+                                if (($deptItem['key'] ?? '') === 'fiche-technique-professeur' && request()->routeIs('admin.teachers.technical')) {
+                                    $isActive = true;
+                                }
+                                if ($isActive) {
+                                    $deptOpen = true;
+                                    break;
+                                }
+                            }
+                        @endphp
+                        <details class="admin-dept admin-dept--{{ $department['tone'] }}" @if ($deptOpen) open @endif>
+                            <summary class="admin-dept-toggle">
+                                <span class="admin-dept-mark admin-dept-mark--{{ $department['tone'] }}">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $department['icon'] }}" />
+                                    </svg>
+                                </span>
+                                <span class="min-w-0 flex-1 truncate">{{ $department['label'] }}</span>
+                                <svg class="admin-dept-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                                </svg>
+                            </summary>
+                            <div class="admin-dept-body">
+                                @foreach ($department['items'] as $item)
+                                    @include('admin.partials.sidebar-link', [
+                                        'item' => $item,
+                                        'tone' => $department['tone'],
+                                        'pendingStudentDemandes' => $pendingStudentDemandes,
+                                        'pendingTeacherDemandes' => $pendingTeacherDemandes,
+                                    ])
+                                @endforeach
+                            </div>
+                        </details>
+                    @endforeach
                 </div>
             @endforeach
         </nav>

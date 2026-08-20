@@ -6,6 +6,8 @@ html {
 
 input[type='password'],
 input[type='file'],
+input[type='date'],
+input[type='time'],
 input[name='password'],
 input[name='access_password'],
 input[name='current_password'],
@@ -13,7 +15,8 @@ input[name='password_confirmation'],
 code,
 pre,
 kbd,
-.ep-keep-case {
+.ep-keep-case,
+.ep-time-24 {
     text-transform: none;
 }
 
@@ -167,6 +170,206 @@ main table tbody td > div.flex {
     justify-content: center;
     align-items: center;
 }
+
+table.ep-table thead th.ep-cell-start,
+main table thead th.ep-cell-start,
+table.ep-table tbody td.ep-cell-start,
+main table tbody td.ep-cell-start {
+    text-align: left;
+    padding-left: 1.25rem;
+}
+
+table.ep-table tbody td.ep-cell-start > div,
+table.ep-table tbody td.ep-cell-start > div.flex,
+main table tbody td.ep-cell-start > div,
+main table tbody td.ep-cell-start > div.flex {
+    justify-content: flex-start;
+    align-items: center;
+}
+
+table.ep-calendar-table thead th,
+main table.ep-calendar-table thead th {
+    background: #ffffff;
+    color: #0f172a;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.subject-mark {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    line-height: 0;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+}
+
+.subject-mark svg {
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.subject-mark--flag {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.dark .subject-mark--flag {
+    border-color: #334155;
+    background: #0f172a;
+}
+
+.subject-mark--flag svg {
+    width: 100%;
+    height: 100%;
+}
+
+.subject-mark-glyph {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    transform: translateY(0.5px);
+}
+
+.admin-dept {
+    margin-bottom: 0.45rem;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.07);
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 0.03);
+}
+
+.admin-dept-toggle {
+    display: flex;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    user-select: none;
+}
+
+.admin-dept-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.admin-dept-toggle::marker {
+    content: '';
+}
+
+.admin-dept-toggle:hover {
+    background: rgb(255 255 255 / 0.04);
+}
+
+.admin-dept-mark {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.65rem;
+    color: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.admin-dept-mark svg {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+}
+
+.admin-dept-mark--violet { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.admin-dept-mark--emerald { background: linear-gradient(135deg, #10b981, #059669); }
+.admin-dept-mark--amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.admin-dept-mark--blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.admin-dept-mark--indigo { background: linear-gradient(135deg, #6366f1, #4338ca); }
+.admin-dept-mark--slate { background: linear-gradient(135deg, #64748b, #334155); }
+
+.admin-dept-chevron {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+    color: #64748b;
+    transition: transform 0.18s ease;
+}
+
+.admin-dept[open] .admin-dept-chevron {
+    transform: rotate(90deg);
+    color: #94a3b8;
+}
+
+.admin-dept[open] {
+    background: rgb(255 255 255 / 0.05);
+}
+
+.admin-dept-body {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0 0.45rem 0.5rem;
+}
+
+.admin-nav-sublink {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 0.75rem;
+    padding: 0.38rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-nav-sublink:hover {
+    background: rgb(255 255 255 / 0.06);
+    color: #fff;
+}
+
+.admin-nav-sublink.is-active {
+    background: rgb(255 255 255 / 0.1);
+    color: #fff;
+}
+
+.admin-nav-subicon {
+    display: inline-flex;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+}
+
+.admin-nav-subicon svg {
+    display: block;
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.admin-nav-subicon--violet { background: rgb(139 92 246 / 0.18); color: #c4b5fd; }
+.admin-nav-subicon--emerald { background: rgb(16 185 129 / 0.18); color: #6ee7b7; }
+.admin-nav-subicon--amber { background: rgb(245 158 11 / 0.18); color: #fcd34d; }
+.admin-nav-subicon--blue { background: rgb(59 130 246 / 0.18); color: #93c5fd; }
+.admin-nav-subicon--indigo { background: rgb(99 102 241 / 0.18); color: #a5b4fc; }
+.admin-nav-subicon--slate { background: rgb(148 163 184 / 0.16); color: #cbd5e1; }
+
+.admin-nav-sublink.is-active .admin-nav-subicon--violet { background: rgb(139 92 246 / 0.35); color: #ddd6fe; }
+.admin-nav-sublink.is-active .admin-nav-subicon--emerald { background: rgb(16 185 129 / 0.35); color: #d1fae5; }
+.admin-nav-sublink.is-active .admin-nav-subicon--amber { background: rgb(245 158 11 / 0.35); color: #fde68a; }
+.admin-nav-sublink.is-active .admin-nav-subicon--blue { background: rgb(59 130 246 / 0.35); color: #dbeafe; }
+.admin-nav-sublink.is-active .admin-nav-subicon--indigo { background: rgb(99 102 241 / 0.35); color: #e0e7ff; }
+.admin-nav-sublink.is-active .admin-nav-subicon--slate { background: rgb(148 163 184 / 0.28); color: #f8fafc; }
 
 /* Classes : barre stats + filtres figée, liste scrollable */
 .classes-lock-page {

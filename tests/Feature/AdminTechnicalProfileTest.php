@@ -42,6 +42,8 @@ class AdminTechnicalProfileTest extends TestCase
         $this->assertSame('yasmine.alaoui@esipres.com', $student->login);
         $this->assertSame('nouveau123', $student->access_password);
         $this->assertSame('trimestre', $student->periode_paiement);
+        $this->assertSame(2400.0, $student->montantTotal());
+        $this->assertSame('2400.00', $student->montantTotalDisplay());
     }
 
     public function test_superadmin_can_update_a_teacher_technical_profile(): void
@@ -141,12 +143,20 @@ class AdminTechnicalProfileTest extends TestCase
             ->assertSee('Nom Complet')
             ->assertSee('Nom Tuteur')
             ->assertSee('Matières')
+            ->assertSee('Paiement')
+            ->assertSee('Total')
+            ->assertSee('1200.00')
+            ->assertSee('2400.00')
             ->assertSee('Ajouter')
             ->assertSee('Importer Photo')
+            ->assertSee('Photo')
+            ->assertSee('Date')
             ->assertSee($student->displayId())
             ->assertSee('Yasmine Alaoui')
             ->assertSee('Ahmed Alaoui')
-            ->assertSee('Mathématiques, SVT')
+            ->assertSee('Math, SVT')
+            ->assertSee('Imprimer')
+            ->assertSee('data-view-student', false)
             ->assertDontSee('studentIdOptions');
     }
 
@@ -178,6 +188,43 @@ class AdminTechnicalProfileTest extends TestCase
             'mode_paiement' => 'especes',
             'login' => 'karim.bennani@esipres.com',
         ]);
+
+        $created = Student::query()->where('login', 'karim.bennani@esipres.com')->first();
+        $this->assertNotNull($created);
+        $this->assertSame(1600.0, $created->montantTotal());
+    }
+
+    public function test_montant_total_is_paiement_times_selected_subjects(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.students.technical.store'), [
+                'nom_complet' => 'Lina Idrissi',
+                'contact' => '0644444444',
+                'tuteur_nom' => 'Omar Idrissi',
+                'contact_tuteur' => '0655555555',
+                'matieres' => ['Mathématiques', 'Anglais'],
+                'niveau_scolaire' => 'college',
+                'paiement' => '200',
+                'mode_paiement' => 'especes',
+                'periode_paiement' => 'mois',
+                'login' => 'lina.idrissi',
+                'access_password' => 'eleve200',
+            ])
+            ->assertRedirect(route('admin.students.technical'))
+            ->assertSessionHasNoErrors();
+
+        $student = Student::query()->where('login', 'lina.idrissi@esipres.com')->first();
+        $this->assertNotNull($student);
+        $this->assertSame(200.0, $student->paymentTotal());
+        $this->assertSame(400.0, $student->montantTotal());
+        $this->assertSame('400.00', $student->montantTotalDisplay());
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.students.technical'))
+            ->assertOk()
+            ->assertSee('Montant Total')
+            ->assertSee('200.00')
+            ->assertSee('400.00');
     }
 
     public function test_fiche_professeur_page_shows_the_teacher_table(): void
@@ -209,7 +256,7 @@ class AdminTechnicalProfileTest extends TestCase
             ->assertSee('Importer Photo')
             ->assertSee($teacher->displayId())
             ->assertSee('Nadia El Amrani')
-            ->assertSee('Mathématiques, SVT')
+            ->assertSee('Math, SVT')
             ->assertDontSee('teacherIdOptions');
     }
 

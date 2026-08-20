@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -59,6 +60,11 @@ class Student extends Model
         return $this->hasOne(StudentApplication::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(StudentPayment::class);
+    }
+
     public function displayId(): string
     {
         return $this->code ?: ('EL'.str_pad((string) $this->id, 4, '0', STR_PAD_LEFT));
@@ -90,6 +96,41 @@ class Student extends Model
         }
 
         return number_format((float) $this->paiement, 2, '.', '');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function subjectsList(): array
+    {
+        return array_values(array_filter(array_map('trim', preg_split('/[,;\/|]+/', (string) $this->matiere) ?: [])));
+    }
+
+    public function subjectFee(): float
+    {
+        return round((float) ($this->paiement ?? 0), 2);
+    }
+
+    public function paymentTotal(): float
+    {
+        return $this->subjectFee();
+    }
+
+    public function subjectShare(): float
+    {
+        return $this->subjectFee();
+    }
+
+    public function montantTotal(): float
+    {
+        $count = count($this->subjectsList());
+
+        return round($this->subjectFee() * $count, 2);
+    }
+
+    public function montantTotalDisplay(): string
+    {
+        return number_format($this->montantTotal(), 2, '.', '');
     }
 
     public function echeanceDisplay(): string

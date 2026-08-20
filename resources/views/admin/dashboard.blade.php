@@ -6,16 +6,6 @@
 
 @section('content')
 @php
-    $statusMap = [
-        'active' => ['label' => 'En direct', 'dot' => 'bg-emerald-500', 'chip' => 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30'],
-        'programmee' => ['label' => 'Programmée', 'dot' => 'bg-amber-400', 'chip' => 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/30'],
-        'annulee' => ['label' => 'Annulée', 'dot' => 'bg-rose-500', 'chip' => 'bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-500/30'],
-        'terminee' => ['label' => 'Terminée', 'dot' => 'bg-slate-400', 'chip' => 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600'],
-    ];
-    $typeMap = [
-        'individuelle' => ['label' => 'Individuelle', 'chip' => 'bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-500/30'],
-        'groupe' => ['label' => 'Groupe', 'chip' => 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30'],
-    ];
     $toneBg = [
         'blue' => 'from-blue-500 to-indigo-500',
         'emerald' => 'from-emerald-500 to-teal-500',
@@ -75,71 +65,6 @@
     </div>
 
     <div class="classes-lock-scroll space-y-6">
-<div class="grid gap-6 xl:grid-cols-3">
-    {{-- Séances du jour --}}
-    <section class="xl:col-span-2 space-y-4">
-        <div class="flex items-end justify-between gap-3">
-            <div>
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Séances du jour</h2>
-                <p class="text-sm text-slate-500">{{ ucfirst($data['today']) }}</p>
-            </div>
-            <a href="{{ route('admin.page.seances') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">Tout voir →</a>
-        </div>
-
-        <div class="grid gap-3 sm:grid-cols-2">
-            @foreach ($data['sessions_today'] as $s)
-                @php $st = $statusMap[$s['statut']]; $tp = $typeMap[$s['type']]; @endphp
-                <article class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset {{ $tp['chip'] }}">
-                            {{ $tp['label'] }}
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset {{ $st['chip'] }}">
-                            <span class="h-1.5 w-1.5 rounded-full {{ $st['dot'] }} {{ $s['statut'] === 'active' ? 'animate-pulse' : '' }}"></span>
-                            {{ $st['label'] }}
-                        </span>
-                    </div>
-                    <h3 class="mt-3 text-base font-bold text-slate-900 dark:text-white">{{ $s['matiere'] }}</h3>
-                    <dl class="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                        <div class="flex justify-between gap-2"><dt>Professeur</dt><dd class="font-medium text-slate-700 dark:text-slate-200">{{ $s['prof'] }}</dd></div>
-                        <div class="flex justify-between gap-2"><dt>Élève / Groupe</dt><dd class="font-medium text-slate-700 dark:text-slate-200">{{ $s['cible'] }}</dd></div>
-                        <div class="flex justify-between gap-2"><dt>Niveau</dt><dd class="font-medium text-slate-700 dark:text-slate-200">{{ $s['niveau'] }}</dd></div>
-                        <div class="flex justify-between gap-2"><dt>Horaire</dt><dd class="font-medium text-slate-700 dark:text-slate-200">{{ $s['debut'] }} – {{ $s['fin'] }} ({{ $s['duree'] }})</dd></div>
-                    </dl>
-                    <a href="{{ route('admin.page.seances') }}" class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">Voir</a>
-                </article>
-            @endforeach
-        </div>
-    </section>
-
-    {{-- Activité temps réel --}}
-    <section class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Activité en temps réel</h2>
-        <p class="text-sm text-slate-500">Activité récente</p>
-        <ul class="mt-4 space-y-3">
-            @foreach ($data['activity'] as $a)
-                @php
-                    $dot = match($a['tone']) {
-                        'green' => 'bg-emerald-500',
-                        'amber' => 'bg-amber-400',
-                        'red' => 'bg-rose-500',
-                        'violet' => 'bg-violet-500',
-                        default => 'bg-blue-500',
-                    };
-                @endphp
-                <li class="flex gap-3 rounded-xl border border-slate-100 p-3 dark:border-slate-800">
-                    <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $dot }}"></span>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $a['title'] }}</p>
-                        <p class="truncate text-xs text-slate-500">{{ $a['text'] }}</p>
-                    </div>
-                    <span class="shrink-0 text-[10px] font-medium text-slate-400">{{ $a['time'] }}</span>
-                </li>
-            @endforeach
-        </ul>
-    </section>
-</div>
-
 {{-- Calendrier semaine --}}
 <section class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

@@ -48,6 +48,12 @@ class UppercaseText
         'paiement',
         'paiement_valeur',
         'echeance',
+        'montant',
+        'montant_paye',
+        'solde',
+        'date',
+        'numero_salle',
+        'remarque',
     ];
 
     public static function convert(string $value): string

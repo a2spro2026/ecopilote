@@ -11,7 +11,7 @@
         th, td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: center; }
         th { background: #eff6ff; color: #1e3a8a; font-size: 10px; }
         td.subject { text-align: left; font-weight: 700; }
-        .flag { display: inline-block; width: 22px; height: 16px; margin-right: 8px; vertical-align: middle; border: 1px solid #cbd5e1; border-radius: 2px; overflow: hidden; }
+        .flag { display: inline-flex; width: 22px; height: 16px; margin-right: 8px; vertical-align: middle; border: 1px solid #cbd5e1; border-radius: 3px; overflow: hidden; align-items: center; justify-content: center; }
         .flag svg { width: 100%; height: 100%; display: block; }
         @media print { button { display: none; } body { margin: 20px; } }
     </style>
@@ -54,7 +54,7 @@
                         @elseif (($m['icon'] ?? null) === 'code')
                             <span class="flag" style="border:0;font-weight:800;line-height:16px;text-align:center">&lt;/&gt;</span>
                         @endif
-                        {{ $m['nom'] }}
+                        {{ \App\Support\SubjectAbbreviation::display($m['nom']) }}
                     </td>
                     <td>{{ $m['profs'] }}</td>
                     <td>{{ $m['etudiants'] }}</td>

@@ -2,10 +2,15 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\GroupController;
+use App\Http\Controllers\Admin\LearningStatusController;
 use App\Http\Controllers\Admin\LevelController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\StudentPaymentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Student\AuthController as StudentAuthController;
@@ -42,6 +47,7 @@ Route::middleware('teacher.auth')->prefix('espace-prof')->group(function () {
     Route::get('/notifications', [WorkspaceController::class, 'notifications'])->name('teacher.notifications');
     Route::get('/profil', [WorkspaceController::class, 'profil'])->name('teacher.profil');
     Route::get('/salle', [WorkspaceController::class, 'salle'])->name('teacher.salle');
+    Route::get('/salle/{session}', [WorkspaceController::class, 'salleShow'])->whereNumber('session')->name('teacher.salle.show');
     Route::get('/seance-terminee', [WorkspaceController::class, 'terminer'])->name('teacher.seance.terminee');
 });
 
@@ -72,6 +78,12 @@ Route::prefix('administration')->group(function () {
     Route::middleware(['auth', 'workspace.admin'])->group(function () {
         Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
+        Route::get('/groupes', [GroupController::class, 'index'])->name('admin.page.groupes');
+        Route::post('/groupes', [GroupController::class, 'store'])->name('admin.groups.store');
+        Route::get('/seances', [SessionController::class, 'index'])->name('admin.page.seances');
+        Route::post('/seances', [SessionController::class, 'store'])->name('admin.sessions.store');
+        Route::patch('/seances/{session}', [SessionController::class, 'update'])->name('admin.sessions.update');
+        Route::get('/calendrier', [CalendarController::class, 'index'])->name('admin.page.calendrier');
         Route::get('/classes', [ClassController::class, 'index'])->name('admin.page.classes');
         Route::get('/classes/nouvelle', [ClassController::class, 'create'])->name('admin.classes.create');
         Route::get('/classes/{classe}', [ClassController::class, 'show'])->whereNumber('classe')->name('admin.classes.show');
@@ -103,17 +115,23 @@ Route::prefix('administration')->group(function () {
         Route::post('/demandes-eleves/{application}/en-attente', [StudentController::class, 'pendingApplication'])->name('admin.students.applications.pending');
         Route::post('/demandes-eleves/{application}/suspendre', [StudentController::class, 'suspendApplication'])->name('admin.students.applications.suspend');
 
+        Route::get('/etat-apprentissage', [LearningStatusController::class, 'index'])->name('admin.page.etat-apprentissage');
+        Route::get('/fiche-paiement-eleve', [StudentPaymentController::class, 'index'])->name('admin.page.fiche-paiement-eleve');
+        Route::post('/fiche-paiement-eleve', [StudentPaymentController::class, 'store'])->name('admin.students.payments.store');
+        Route::get('/fiche-paiement-eleve/{payment}/imprimer', [StudentPaymentController::class, 'print'])->name('admin.students.payments.print');
         Route::get('/matieres', [SubjectController::class, 'index'])->name('admin.page.matieres');
         Route::get('/matieres/imprimer', [SubjectController::class, 'print'])->name('admin.subjects.print');
         Route::get('/niveaux', [LevelController::class, 'index'])->name('admin.page.niveaux');
         Route::get('/niveaux/imprimer', [LevelController::class, 'print'])->name('admin.levels.print');
         Route::get('/salles-actives', [RoomController::class, 'index'])->name('admin.page.salles-actives');
+        Route::get('/salles-actives/{session}/ecouter', [RoomController::class, 'listen'])->whereNumber('session')->name('admin.rooms.listen');
+        Route::get('/salles-actives/{session}/voir', [RoomController::class, 'watch'])->whereNumber('session')->name('admin.rooms.watch');
         Route::get('/configuration', [AdminController::class, 'configuration'])->name('admin.page.configuration');
         Route::post('/configuration/video', [AdminController::class, 'storeHeroVideo'])->name('admin.configuration.video.store');
         Route::post('/configuration/video/supprimer', [AdminController::class, 'destroyHeroVideo'])->name('admin.configuration.video.destroy');
 
         foreach (AdminController::pageKeys() as $key) {
-            if (in_array($key, ['classes', 'candidatures-profs', 'professeurs', 'fiche-technique-professeur', 'demandes-eleves', 'eleves', 'fiche-technique-eleve', 'matieres', 'niveaux', 'salles-actives', 'configuration'], true)) {
+            if (in_array($key, ['classes', 'groupes', 'seances', 'calendrier', 'candidatures-profs', 'professeurs', 'fiche-technique-professeur', 'demandes-eleves', 'eleves', 'fiche-technique-eleve', 'etat-apprentissage', 'fiche-paiement-eleve', 'matieres', 'niveaux', 'salles-actives', 'configuration'], true)) {
                 continue;
             }
             Route::get("/{$key}", [AdminController::class, 'page'])

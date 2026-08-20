@@ -5,38 +5,49 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Support\TeacherDemoData;
+use App\Support\TeacherWorkspaceData;
 use Illuminate\Http\Request;
 
 class WorkspaceController extends Controller
 {
-    private function demo(Request $request): TeacherDemoData
+    private function teacher(Request $request): Teacher
     {
         /** @var Teacher $teacher */
         $teacher = $request->attributes->get('teacher');
 
-        return new TeacherDemoData($teacher);
+        return $teacher;
+    }
+
+    private function demo(Request $request): TeacherDemoData
+    {
+        return new TeacherDemoData($this->teacher($request));
+    }
+
+    private function workspace(Request $request): TeacherWorkspaceData
+    {
+        return TeacherWorkspaceData::for($this->teacher($request));
     }
 
     public function bureau(Request $request)
     {
-        $demo = $this->demo($request);
+        $workspace = $this->workspace($request);
 
         return view('teacher.bureau', [
-            'kpis' => $demo->kpis(),
-            'next' => $demo->nextSession(),
-            'sessionsToday' => $demo->sessionsToday(),
-            'classes' => $demo->classes(),
+            'kpis' => $workspace->kpis(),
+            'next' => $workspace->nextSession(),
+            'sessionsToday' => $workspace->sessionsToday(),
+            'classes' => $workspace->classes(),
         ]);
     }
 
     public function seances(Request $request)
     {
         $filter = $request->string('filtre')->toString() ?: 'toutes';
-        $demo = $this->demo($request);
+        $workspace = $this->workspace($request);
 
         return view('teacher.seances', [
             'filtre' => $filter,
-            'seances' => $demo->sessions($filter),
+            'seances' => $workspace->sessions($filter),
         ]);
     }
 
@@ -126,13 +137,29 @@ class WorkspaceController extends Controller
 
     public function salle(Request $request)
     {
-        $demo = $this->demo($request);
-        $next = $demo->nextSession();
+        $workspace = $this->workspace($request);
+        $next = $workspace->nextSession();
+
+        if (! $next['joinable'] || empty($next['id'])) {
+            return redirect()
+                ->route('teacher.bureau')
+                ->with('status', 'Aucune salle active ne vous est affectée pour le moment.');
+        }
+
+        return redirect()->route('teacher.salle.show', $next['id']);
+    }
+
+    public function salleShow(Request $request, int $session)
+    {
+        $workspace = $this->workspace($request);
+        $studySession = $workspace->sessionForTeacher($session);
+        abort_unless($studySession !== null, 404);
+        abort_unless($workspace->canJoin($studySession), 403);
 
         return view('teacher.salle', [
-            'session' => $next,
-            'eleves' => $demo->roomStudents(),
-            'documents' => $demo->courseDocuments(),
+            'session' => $workspace->toRoomSession($studySession),
+            'eleves' => $workspace->roomStudents($studySession),
+            'documents' => $this->demo($request)->courseDocuments(),
         ]);
     }
 

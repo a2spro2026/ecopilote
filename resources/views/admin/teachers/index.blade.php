@@ -73,7 +73,7 @@
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->contact }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->ville }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->statutLabel() }}</td>
-                            <td class="text-slate-600 dark:text-slate-300">{{ $p->matiere }}</td>
+                            <td class="text-slate-600 dark:text-slate-300" title="{{ $p->matiere }}">{{ \App\Support\SubjectAbbreviation::display($p->matiere) }}</td>
                             <td class="text-slate-600 dark:text-slate-300">{{ $p->disponibiliteLabel() }}</td>
                             <td>
                                 <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset {{ $em['chip'] }}">
