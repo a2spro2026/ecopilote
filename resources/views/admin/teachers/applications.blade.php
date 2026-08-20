@@ -10,12 +10,19 @@
         {{ session('status') }}
     </div>
 @endif
+@if ($errors->any())
+    <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
+        <ul class="list-disc space-y-1 pl-4">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+    </div>
+@endif
+
+@php $suffix = \App\Support\EcopiloteIdentity::emailSuffix(); @endphp
 
 <div class="w-full min-h-[calc(100vh-10rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
         <div>
             <h2 class="text-base font-bold text-slate-900 dark:text-white" style="font-family:'Poppins',sans-serif;">Candidatures</h2>
-            <p class="text-sm text-slate-500">{{ $candidatures->count() }} candidature(s)</p>
+            <p class="text-sm text-slate-500">{{ $candidatures->count() }} candidature(s) · renseignez Login et Mot de passe avant de valider</p>
         </div>
         <a href="{{ route('admin.dashboard') }}" data-window-close class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
             Fermer
@@ -23,17 +30,19 @@
     </div>
 
     <div class="w-full overflow-x-auto">
-        <table class="ep-table min-w-[1180px] w-full table-fixed text-sm">
+        <table class="ep-table min-w-[1400px] w-full table-fixed text-sm">
             <colgroup>
-                <col class="w-[9%]">
-                <col class="w-[9%]">
-                <col class="w-[16%]">
+                <col class="w-[7%]">
+                <col class="w-[7%]">
                 <col class="w-[12%]">
-                <col class="w-[10%]">
-                <col class="w-[10%]">
-                <col class="w-[10%]">
-                <col class="w-[10%]">
+                <col class="w-[9%]">
+                <col class="w-[8%]">
+                <col class="w-[7%]">
+                <col class="w-[7%]">
+                <col class="w-[8%]">
                 <col class="w-[14%]">
+                <col class="w-[9%]">
+                <col class="w-[12%]">
             </colgroup>
             <thead>
                 <tr>
@@ -45,13 +54,21 @@
                     <th>Niveau</th>
                     <th>Matière</th>
                     <th>Statut</th>
+                    <th>Login</th>
+                    <th>Mot de passe</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 @forelse ($candidatures as $c)
-                    @php $isValidee = $c->etat === 'validee'; @endphp
-                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 {{ $isValidee ? 'opacity-60' : '' }}">
+                    @php
+                        $isValidee = $c->etat === 'validee';
+                        $formId = 'candidature-validate-'.$c->id;
+                        $loginLocal = \App\Support\EcopiloteIdentity::localPart($c->login ?: \App\Support\EcopiloteIdentity::loginFromName($c->nom_complet));
+                        $shownLogin = $c->login ?: ($c->teacher?->login);
+                        $shownPassword = $c->access_password;
+                    @endphp
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 {{ $isValidee ? 'opacity-70' : '' }}">
                         <td class="whitespace-nowrap text-slate-600 dark:text-slate-300">{{ $c->created_at?->format('d/m/Y') ?: '—' }}</td>
                         <td class="font-semibold text-slate-900 dark:text-white">{{ $c->displayId() }}</td>
                         <td class="truncate font-medium text-slate-800 dark:text-slate-100" title="{{ $c->nom_complet }}">{{ $c->nom_complet }}</td>
@@ -62,10 +79,35 @@
                         <td class="text-slate-600 dark:text-slate-300">{{ $c->statutLabel() }}</td>
                         <td>
                             @if ($isValidee)
+                                <span class="ep-keep-case block truncate text-xs font-semibold text-slate-800 dark:text-slate-100" title="{{ $shownLogin }}">{{ $shownLogin ?: '—' }}</span>
+                            @else
+                                <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                                    <input form="{{ $formId }}" type="text" name="login" required
+                                           value="{{ old('login', $loginLocal) }}"
+                                           autocomplete="off" autocapitalize="off" spellcheck="false"
+                                           class="ep-keep-case min-w-0 flex-1 border-0 bg-transparent px-2 py-1.5 text-xs outline-none"
+                                           placeholder="identifiant">
+                                    <span class="ep-keep-case flex shrink-0 items-center border-l border-slate-200 bg-slate-100 px-1.5 text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900">{{ $suffix }}</span>
+                                </div>
+                            @endif
+                        </td>
+                        <td>
+                            @if ($isValidee)
+                                <span class="ep-keep-case block truncate font-mono text-xs font-semibold text-slate-800 dark:text-slate-100" title="{{ $shownPassword }}">{{ $shownPassword ?: '—' }}</span>
+                            @else
+                                <input form="{{ $formId }}" type="text" name="access_password" required minlength="6"
+                                       value="{{ old('access_password', $c->access_password ?: '') }}"
+                                       autocomplete="off"
+                                       class="ep-keep-case w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 font-mono text-xs outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800"
+                                       placeholder="min. 6 car.">
+                            @endif
+                        </td>
+                        <td>
+                            @if ($isValidee)
                                 <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30">Validée</span>
                             @else
                                 <div class="flex flex-nowrap items-center justify-center gap-1.5">
-                                    <form method="POST" action="{{ route('admin.teachers.applications.validate', $c) }}">
+                                    <form id="{{ $formId }}" method="POST" action="{{ route('admin.teachers.applications.validate', $c) }}">
                                         @csrf
                                         <button type="submit" title="Valider" aria-label="Valider"
                                                 class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white transition hover:bg-emerald-600">
@@ -104,7 +146,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="!py-14 text-center text-sm text-slate-500">Aucune candidature pour le moment. Les inscriptions du portail professeurs apparaîtront ici.</td>
+                        <td colspan="11" class="!py-14 text-center text-sm text-slate-500">Aucune candidature pour le moment. Les inscriptions du portail professeurs apparaîtront ici.</td>
                     </tr>
                 @endforelse
             </tbody>

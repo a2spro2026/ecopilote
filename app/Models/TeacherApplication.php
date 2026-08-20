@@ -23,9 +23,18 @@ class TeacherApplication extends Model
         'niveau',
         'statut',
         'disponibilite',
+        'login',
+        'access_password',
         'etat',
         'teacher_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'access_password' => 'encrypted',
+        ];
+    }
 
     public function teacher(): BelongsTo
     {

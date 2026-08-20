@@ -17,6 +17,7 @@ class StudentController extends Controller
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
         $demandes = StudentApplication::query()
+            ->with('student')
             ->latest()
             ->get();
 
@@ -186,14 +187,28 @@ class StudentController extends Controller
     {
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
-        DB::transaction(function () use ($application) {
+        $request->merge([
+            'login' => EcopiloteIdentity::email((string) $request->input('login', '')),
+        ]);
+
+        $data = $request->validate([
+            'login' => [
+                'required',
+                'email',
+                'max:120',
+                Rule::unique('students', 'login')->ignore($application->student_id),
+            ],
+            'access_password' => ['required', 'string', 'min:6', 'max:120'],
+        ]);
+
+        DB::transaction(function () use ($application, $data) {
             if ($application->student_id) {
                 $student = Student::findOrFail($application->student_id);
                 $student->update([
                     'etat' => Student::ETAT_ACTIF,
                     'nom_complet' => $application->nom_complet,
-                    'login' => $this->uniqueLogin($application->nom_complet, $student->id),
-                    'access_password' => $student->access_password ?: (string) random_int(10000000, 99999999),
+                    'login' => $data['login'],
+                    'access_password' => $data['access_password'],
                     'contact' => $application->contact,
                     'contact_tuteur' => $application->contact_tuteur,
                     'ville' => $application->ville,
@@ -207,8 +222,8 @@ class StudentController extends Controller
             } else {
                 $student = Student::create([
                     'nom_complet' => $application->nom_complet,
-                    'login' => $this->uniqueLogin($application->nom_complet),
-                    'access_password' => (string) random_int(10000000, 99999999),
+                    'login' => $data['login'],
+                    'access_password' => $data['access_password'],
                     'contact' => $application->contact,
                     'contact_tuteur' => $application->contact_tuteur,
                     'ville' => $application->ville,
@@ -221,11 +236,16 @@ class StudentController extends Controller
                 $application->student_id = $student->id;
             }
 
+            $application->login = $data['login'];
+            $application->access_password = $data['access_password'];
             $application->etat = StudentApplication::ETAT_VALIDEE;
             $application->save();
         });
 
-        return back()->with('status', 'Demande validée — l’élève a été ajouté à la liste.');
+        return back()->with(
+            'status',
+            'Demande validée — accès élève : '.$data['login'].' / '.$data['access_password']
+        );
     }
 
     public function pendingApplication(Request $request, StudentApplication $application)

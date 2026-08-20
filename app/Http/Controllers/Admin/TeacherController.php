@@ -17,6 +17,7 @@ class TeacherController extends Controller
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
         $candidatures = TeacherApplication::query()
+            ->with('teacher')
             ->latest()
             ->get();
 
@@ -190,14 +191,28 @@ class TeacherController extends Controller
     {
         abort_unless($request->user()?->isSuperAdmin(), 403);
 
-        DB::transaction(function () use ($application) {
+        $request->merge([
+            'login' => EcopiloteIdentity::email((string) $request->input('login', '')),
+        ]);
+
+        $data = $request->validate([
+            'login' => [
+                'required',
+                'email',
+                'max:120',
+                Rule::unique('teachers', 'login')->ignore($application->teacher_id),
+            ],
+            'access_password' => ['required', 'string', 'min:6', 'max:120'],
+        ]);
+
+        DB::transaction(function () use ($application, $data) {
             if ($application->teacher_id) {
                 $teacher = Teacher::findOrFail($application->teacher_id);
                 $teacher->update([
                     'etat' => Teacher::ETAT_ACTIF,
                     'nom_complet' => $application->nom_complet,
-                    'login' => EcopiloteIdentity::loginFromName($application->nom_complet),
-                    'access_password' => $teacher->access_password ?: (string) random_int(10000000, 99999999),
+                    'login' => $data['login'],
+                    'access_password' => $data['access_password'],
                     'contact' => $application->contact,
                     'ville' => $application->ville,
                     'statut' => $application->statut,
@@ -208,8 +223,8 @@ class TeacherController extends Controller
             } else {
                 $teacher = Teacher::create([
                     'nom_complet' => $application->nom_complet,
-                    'login' => EcopiloteIdentity::loginFromName($application->nom_complet),
-                    'access_password' => (string) random_int(10000000, 99999999),
+                    'login' => $data['login'],
+                    'access_password' => $data['access_password'],
                     'contact' => $application->contact,
                     'ville' => $application->ville,
                     'statut' => $application->statut,
@@ -221,11 +236,16 @@ class TeacherController extends Controller
                 $application->teacher_id = $teacher->id;
             }
 
+            $application->login = $data['login'];
+            $application->access_password = $data['access_password'];
             $application->etat = TeacherApplication::ETAT_VALIDEE;
             $application->save();
         });
 
-        return back()->with('status', 'Candidature validée — le professeur a été ajouté à la liste.');
+        return back()->with(
+            'status',
+            'Candidature validée — accès professeur : '.$data['login'].' / '.$data['access_password']
+        );
     }
 
     public function pendingApplication(Request $request, TeacherApplication $application)

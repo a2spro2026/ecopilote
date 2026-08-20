@@ -22,10 +22,19 @@ class StudentApplication extends Model
         'niveau_scolaire',
         'matiere',
         'type_cours',
+        'login',
+        'access_password',
         'photo_path',
         'etat',
         'student_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'access_password' => 'encrypted',
+        ];
+    }
 
     public function student(): BelongsTo
     {
