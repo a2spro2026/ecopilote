@@ -269,7 +269,7 @@
                     <h2 id="etudiantRegisterTitle" class="text-base font-extrabold text-white" style="font-family:'Poppins',sans-serif;">
                         S'inscrire
                     </h2>
-                    <p class="mt-0.5 text-xs text-blue-100">Inscription étudiant</p>
+                    <p class="mt-0.5 text-xs text-blue-100">Inscription étudiant · تسجيل الطالب</p>
                 </div>
 
                 <form method="POST" action="{{ $registerAction }}" enctype="multipart/form-data" class="grid gap-3 px-5 py-4 sm:grid-cols-2">
@@ -277,44 +277,44 @@
                     <input type="hidden" name="_form" value="etudiant_register">
 
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Nom Complet</label>
-                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required placeholder="Ex. Yassine Bennani" class="{{ $fieldClass }}">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Nom complet (الاسم الكامل)</label>
+                        <input type="text" name="nom_complet" value="{{ old('nom_complet') }}" required placeholder="Ex. Yassine Bennani (مثال)" class="{{ $fieldClass }}">
                         @error('nom_complet') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Contact</label>
-                        <input type="text" name="contact" value="{{ old('contact') }}" required placeholder="Téléphone ou e-mail" class="{{ $fieldClass }}">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Contact (رقم الهاتف أو البريد الإلكتروني)</label>
+                        <input type="text" name="contact" value="{{ old('contact') }}" required placeholder="Téléphone ou e-mail (هاتف أو بريد إلكتروني)" class="{{ $fieldClass }}">
                         @error('contact') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Contact Tuteur</label>
-                        <input type="text" name="contact_tuteur" value="{{ old('contact_tuteur') }}" required placeholder="Téléphone du tuteur" class="{{ $fieldClass }}">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Contact tuteur (هاتف ولي الأمر)</label>
+                        <input type="text" name="contact_tuteur" value="{{ old('contact_tuteur') }}" required placeholder="Téléphone du tuteur (هاتف ولي الأمر)" class="{{ $fieldClass }}">
                         @error('contact_tuteur') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Ville</label>
-                        <input type="text" name="ville" value="{{ old('ville') }}" required placeholder="Ex. Casablanca" class="{{ $fieldClass }}">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Ville (المدينة)</label>
+                        <input type="text" name="ville" value="{{ old('ville') }}" required placeholder="Ex. Casablanca (مثال)" class="{{ $fieldClass }}">
                         @error('ville') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Niveau Scolaire</label>
-                        <input type="text" name="niveau_scolaire" value="{{ old('niveau_scolaire') }}" required placeholder="Ex. 2nde, 1ère, Terminale…" class="{{ $fieldClass }}">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Niveau scolaire (المستوى الدراسي)</label>
+                        <input type="text" name="niveau_scolaire" value="{{ old('niveau_scolaire') }}" required placeholder="Ex. 2nde, 1ère, Terminale… (مثال)" class="{{ $fieldClass }}">
                         @error('niveau_scolaire') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Type Cours</label>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Type de cours (نوع الحصة)</label>
                         <select name="type_cours" required class="{{ $fieldClass }}">
-                            <option value="">Sélectionner…</option>
-                            <option value="individuel" @selected(old('type_cours') === 'individuel')>Individuel</option>
-                            <option value="en_groupe" @selected(old('type_cours') === 'en_groupe')>En Groupe</option>
+                            <option value="">Sélectionner… / اختر…</option>
+                            <option value="individuel" @selected(old('type_cours') === 'individuel')>Individuel (فردي)</option>
+                            <option value="en_groupe" @selected(old('type_cours') === 'en_groupe')>En groupe (جماعي)</option>
                         </select>
                         @error('type_cours') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="sm:col-span-2">
                         <div class="mb-1 flex items-center justify-between">
-                            <label class="text-xs font-semibold text-slate-700">Matières</label>
-                            <span class="text-[10px] font-medium text-slate-400">Une ou plusieurs</span>
+                            <label class="text-xs font-semibold text-slate-700">Matières (المواد)</label>
+                            <span class="text-[10px] font-medium text-slate-400">Une ou plusieurs · مادة واحدة أو أكثر</span>
                         </div>
                         <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:grid-cols-4">
                             @foreach ($subjects as $subject)
@@ -331,16 +331,16 @@
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Photo</label>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Photo (الصورة)</label>
                         <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5">
                             <span id="etudiantPhotoPreviewWrap" class="hidden h-9 w-9 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white">
                                 <img id="etudiantPhotoPreview" alt="Aperçu" class="h-full w-full object-cover">
                             </span>
-                            <p id="etudiantPhotoName" class="min-w-0 flex-1 truncate text-[11px] text-slate-500">Aucun fichier choisi</p>
+                            <p id="etudiantPhotoName" class="min-w-0 flex-1 truncate text-[11px] text-slate-500">Aucun fichier choisi · لم يتم اختيار ملف</p>
                             <input id="etudiantPhotoFile" type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,image/*" class="sr-only">
                             <button type="button" id="etudiantPhotoBrowse"
                                     class="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700">
-                                Importer
+                                Importer · رفع
                             </button>
                         </div>
                         @error('photo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -349,11 +349,11 @@
                     <div class="flex gap-2 pt-1 sm:col-span-2">
                         <button type="submit"
                                 class="flex-1 rounded-lg bg-gradient-to-r from-blue-700 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition hover:from-blue-800 hover:to-emerald-700">
-                            Envoyer
+                            Envoyer · إرسال
                         </button>
                         <button type="button" onclick="closeEtudiantRegister()"
                                 class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                            Fermer
+                            Fermer · إغلاق
                         </button>
                     </div>
                 </form>
@@ -384,7 +384,7 @@
                 input.addEventListener('change', () => {
                     const file = input.files && input.files[0];
                     if (!file) {
-                        name.textContent = 'Aucun fichier choisi';
+                        name.textContent = 'Aucun fichier choisi · لم يتم اختيار ملف';
                         wrap.classList.add('hidden');
                         preview.removeAttribute('src');
                         return;
